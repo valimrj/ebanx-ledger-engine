@@ -8,7 +8,7 @@ import com.ebanx.ledger.application.TransferUseCase
 import com.ebanx.ledger.application.WithdrawUseCase
 import com.ebanx.ledger.domain.AccountId
 import com.ebanx.ledger.infrastructure.InMemoryAccountRepository
-import com.ebanx.ledger.ports.AccountRepository
+import com.ebanx.ledger.infrastructure.AccountRepository
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.Parameters

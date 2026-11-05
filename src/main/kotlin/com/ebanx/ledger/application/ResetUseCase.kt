@@ -1,6 +1,6 @@
 package com.ebanx.ledger.application
 
-import com.ebanx.ledger.ports.AccountRepository
+import com.ebanx.ledger.infrastructure.AccountRepository
 
 /** Único motivo de mudar: limpar o estado entre execuções do suite de testes. */
 class ResetUseCase(private val repository: AccountRepository) {

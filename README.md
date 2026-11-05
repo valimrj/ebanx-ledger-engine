@@ -35,14 +35,16 @@ Resumindo a estrutura:
 src/main/kotlin/com/ebanx/ledger/
 ├── domain/         # Account — regra de negocio pura, sem Ktor
 ├── application/     # um caso de uso por operacao (SRP)
-├── ports/           # AccountRepository — a unica interface antecipada
-├── infrastructure/  # InMemoryAccountRepository
+├── infrastructure/  # AccountRepository (a porta) + InMemoryAccountRepository (a unica impl)
 └── http/            # DTOs, EventDispatcher, rotas Ktor
 ```
 
-A dependência só pode ir "de fora pra dentro": `http` e `infrastructure`
-conhecem `domain`/`application`; o inverso nunca — e isso é verificado
-automaticamente pelo `LayeringTest`.
+Simplifiquei juntando a porta `AccountRepository` no mesmo pacote da sua
+única implementação, em vez de um pacote `ports` separado só pra uma
+interface — uma pasta a menos. `domain`/`application` podem importar a
+interface, mas nunca a implementação concreta (`InMemoryAccountRepository`)
+nem nada de `http`/Ktor — essa regra mais fina é o que o `LayeringTest`
+verifica automaticamente.
 
 ## Endpoints
 

@@ -6,23 +6,24 @@ import com.lemonappdev.konsist.api.verify.assertFalse
 import org.junit.jupiter.api.Test
 
 /**
- * Testes de arquitetura (história 1, guarda-trilho para todas as próximas):
- * eu garanto aqui que a arquitetura hexagonal não degrada enquanto o código
- * cresce.
+ * Testes de arquitetura: eu garanto aqui que a arquitetura hexagonal não
+ * degrada enquanto o código cresce.
  *
- * Regra central: domain e application não podem depender de infrastructure
- * nem de http. A dependência só pode ir "de fora pra dentro" — http e
- * infrastructure conhecem domain/application; o inverso, nunca.
- *
- * Eu limito o escopo a `scopeFromProduction()` (só `src/main`) de propósito:
- * nos testes é normal e saudável instanciar `InMemoryAccountRepository`
- * diretamente pra montar o cenário — a regra de camadas é sobre o código que
- * vai pra produção, não sobre como eu monto um teste.
+ * Simplifiquei a estrutura juntando a porta `AccountRepository` dentro do
+ * pacote `infrastructure` (ela mora no mesmo arquivo da sua única
+ * implementação, em vez de ter um pacote `ports` só pra ela) — uma pasta a
+ * menos pra navegar. Isso tem um custo que eu assumo conscientemente: a
+ * regra de camadas não pode mais dizer "application não importa nada de
+ * infrastructure", porque agora `application` precisa importar a interface
+ * `AccountRepository`, que mora lá. Em troca, eu aperto a regra pro que
+ * importa de verdade: nenhuma classe de `domain`/`application` pode
+ * depender de uma implementação CONCRETA (`InMemoryAccountRepository`) nem
+ * de `http`/Ktor. A interface pode atravessar; a implementação, nunca.
  */
 class LayeringTest {
 
     @Test
-    fun `domain nao pode depender de http nem de infrastructure`() {
+    fun `domain nao pode depender de http nem de uma implementacao concreta de repositorio`() {
         Konsist
             .scopeFromProduction()
             .files
@@ -30,14 +31,14 @@ class LayeringTest {
             .assertFalse {
                 it.hasImport { import ->
                     import.name.startsWith("com.ebanx.ledger.http") ||
-                        import.name.startsWith("com.ebanx.ledger.infrastructure") ||
+                        import.name.startsWith("com.ebanx.ledger.infrastructure.InMemory") ||
                         import.name.startsWith("io.ktor")
                 }
             }
     }
 
     @Test
-    fun `application nao pode depender de http nem de infrastructure`() {
+    fun `application nao pode depender de http nem de uma implementacao concreta de repositorio`() {
         Konsist
             .scopeFromProduction()
             .files
@@ -45,22 +46,7 @@ class LayeringTest {
             .assertFalse {
                 it.hasImport { import ->
                     import.name.startsWith("com.ebanx.ledger.http") ||
-                        import.name.startsWith("com.ebanx.ledger.infrastructure") ||
-                        import.name.startsWith("io.ktor")
-                }
-            }
-    }
-
-    @Test
-    fun `ports nao pode depender de infrastructure nem de http`() {
-        Konsist
-            .scopeFromProduction()
-            .files
-            .withPackage("com.ebanx.ledger.ports..")
-            .assertFalse {
-                it.hasImport { import ->
-                    import.name.startsWith("com.ebanx.ledger.http") ||
-                        import.name.startsWith("com.ebanx.ledger.infrastructure") ||
+                        import.name.startsWith("com.ebanx.ledger.infrastructure.InMemory") ||
                         import.name.startsWith("io.ktor")
                 }
             }

@@ -13,14 +13,16 @@
   refatorar (refactor). Os commits refletem isso — cada história chega com teste
   e implementação juntos, nunca implementação sem teste.
 - **Arquitetura hexagonal**: `domain` e `application` são o centro (regra de
-  negócio pura, sem Ktor). `ports` define as interfaces que o centro expõe pra
-  fora. `infrastructure` e `http` são adapters — eles conhecem o centro, o
-  centro nunca conhece eles.
+  negócio pura, sem Ktor). A porta `AccountRepository` mora dentro de
+  `infrastructure`, junto da sua única implementação — simplifiquei assim
+  pra não ter um pacote `ports` com um arquivo só. `http` e `infrastructure`
+  são adapters — eles conhecem o centro, o centro nunca conhece eles.
 - **Testes de arquitetura (Konsist)**: eu não confio só em disciplina — escrevi
   um teste (`LayeringTest`) que quebra o build se eu (ou alguém depois de mim)
-  importar `io.ktor` ou `infrastructure` dentro de `domain`/`application`. Isso
-  vira meu guarda-trilho pra não deixar a arquitetura hexagonal degradar com o
-  tempo.
+  importar `io.ktor` ou uma implementação CONCRETA de infraestrutura
+  (`InMemoryAccountRepository`) dentro de `domain`/`application` — a
+  interface pode atravessar, a implementação nunca. Isso vira meu
+  guarda-trilho pra não deixar a arquitetura hexagonal degradar com o tempo.
 - **SRP em primeiro lugar**: cada caso de uso resolve uma única operação
   (Deposit, Withdraw, Transfer, Reset, GetBalance). Nenhum "AccountService"
   genérico fazendo tudo.
@@ -31,12 +33,14 @@
   `AccountRepository` (porta mínima), porque o enunciado já avisa "we may ask
   for modifications" — troca de storage é a mudança mais provável de pedirem.
   Fora isso, eu concretizo primeiro e só abstraio quando duplicar de verdade.
-- **Testes dinâmicos**: a suíte de integração que reproduz os cenários do
-  enunciado (`EventScenariosTest`) usa `@TestFactory` do JUnit 5 — cada cenário
-  do enunciado é um `DynamicTest` gerado a partir de uma lista de dados
-  (request → status esperado → body esperado). Isso deixa claro, lendo a lista,
-  quais casos eu cobri, e adicionar um cenário novo é só adicionar uma linha,
-  não escrever um método de teste novo.
+- **Testes dinâmicos**: eu uso `@TestFactory`/`DynamicTest` do JUnit 5 em
+  `EventDispatcherTest`, onde os casos são independentes entre si (uma tabela
+  de valores de depósito, cada um com seu próprio repositório em memória) —
+  é exatamente o cenário onde `DynamicTest` se encaixa bem. Já a sequência
+  completa do enunciado (`EventScenariosTest`) eu escrevo como um teste
+  sequencial único: os passos são ordenados e dependentes (o saldo de um
+  passo afeta o próximo, contra o mesmo servidor de teste), e forçar isso em
+  `DynamicTest` exigiria recriar a aplicação a cada passo, perdendo o estado.
 
 ## Por que não uso Kafka nem DynamoDB
 O enunciado é explícito: "Durability IS NOT a requirement" e "do not try to

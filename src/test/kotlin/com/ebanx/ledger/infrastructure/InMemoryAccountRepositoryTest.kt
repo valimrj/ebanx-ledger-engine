@@ -2,7 +2,6 @@ package com.ebanx.ledger.infrastructure
 
 import com.ebanx.ledger.domain.Account
 import com.ebanx.ledger.domain.AccountId
-import com.ebanx.ledger.ports.AccountRepository
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
