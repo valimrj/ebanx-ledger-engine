@@ -3,7 +3,6 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     kotlin("jvm") version "1.9.25"
     kotlin("plugin.serialization") version "1.9.25"
-    id("io.ktor.plugin") version "2.3.12"
     application
 }
 
