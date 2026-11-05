@@ -1,13 +1,13 @@
 package com.ebanx.ledger
 
+import com.ebanx.ledger.http.businessRouting
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.server.plugins.statuspages.StatusPages
-import io.ktor.server.routing.routing
+import kotlinx.serialization.json.Json
 
 /**
  * Ponto de entrada do processo. Eu só subo o servidor Ktor na porta configurada
@@ -18,16 +18,18 @@ fun main() {
 }
 
 /**
- * Composição da aplicação: plugins de transporte (JSON, mapeamento de erro) e
- * rotas. Eu adiciono as rotas de negócio história a história; aqui começa vazio
- * de propósito, pra não antecipar nada que ainda não foi pedido.
+ * Composição da aplicação: plugins de transporte (JSON) e as rotas de
+ * negócio, que vivem em `http.businessRouting` — ela também instala o
+ * `StatusPages` que mapeia exceção de domínio pra status HTTP.
+ *
+ * `explicitNulls = false` faz o serializer omitir campos nulos, porque o
+ * enunciado só inclui a chave "origin" ou "destination" quando ela se aplica
+ * ao tipo de evento.
  */
+@OptIn(kotlinx.serialization.ExperimentalSerializationApi::class)
 fun Application.module() {
     install(ContentNegotiation) {
-        json()
+        json(Json { explicitNulls = false })
     }
-    install(StatusPages)
-    routing {
-        // rotas de negócio chegam nas próximas histórias
-    }
+    businessRouting()
 }
