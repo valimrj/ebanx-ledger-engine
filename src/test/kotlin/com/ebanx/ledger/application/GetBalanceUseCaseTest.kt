@@ -22,4 +22,21 @@ class GetBalanceUseCaseTest {
 
         assertEquals(20, getBalanceUseCase.execute(AccountId("100"))?.balance)
     }
+
+    /**
+     * Ponto conceitual que eu preciso provar, não só afirmar: GET não pode
+     * ter efeito colateral. Eu chamo a consulta várias vezes e confirmo que
+     * o saldo não muda nenhuma vez — se `execute` algum dia chamasse
+     * `repository.save` por engano, esse teste quebraria.
+     */
+    @Test
+    fun `eu consulto o saldo varias vezes e o saldo nunca muda so por consultar`() {
+        DepositUseCase(repository).execute(AccountId("100"), amount = 20)
+
+        repeat(5) {
+            assertEquals(20, getBalanceUseCase.execute(AccountId("100"))?.balance)
+        }
+
+        assertEquals(20, repository.findById(AccountId("100"))?.balance)
+    }
 }

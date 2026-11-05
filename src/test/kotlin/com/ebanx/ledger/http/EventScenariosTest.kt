@@ -116,6 +116,25 @@ class EventScenariosTest {
         assertEquals("10", balanceAfter.bodyAsText())
     }
 
+    /**
+     * Ponto conceitual do checklist da EBANX: "GET não deve ter efeito
+     * colateral". Eu chamo GET /balance várias vezes de propósito e
+     * confirmo que o saldo é o mesmo em todas — na rota real, não só no
+     * caso de uso isolado (esse eu já testei em GetBalanceUseCaseTest).
+     */
+    @Test
+    fun `GET balance repetidas vezes nunca muda o saldo`() = testApplication {
+        application { module() }
+
+        postEvent("""{"type":"deposit","destination":"500","amount":30}""")
+
+        repeat(5) {
+            val response = client.get("/balance?account_id=500")
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals("30", response.bodyAsText())
+        }
+    }
+
     private suspend fun io.ktor.server.testing.ApplicationTestBuilder.postEvent(body: String) =
         client.post("/event") {
             contentType(ContentType.Application.Json)
