@@ -1,10 +1,12 @@
 package com.ebanx.ledger.application
 
 import com.ebanx.ledger.domain.AccountId
+import com.ebanx.ledger.domain.InsufficientFundsException
 import com.ebanx.ledger.infrastructure.InMemoryAccountRepository
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertNull
 
 class TransferUseCaseTest {
 
@@ -41,5 +43,17 @@ class TransferUseCaseTest {
 
         assertEquals(0, result.origin.balance)
         assertEquals(20, result.destination.balance)
+    }
+
+    @Test
+    fun `eu transfiro mais do que a origem tem e o destino nao e tocado`() {
+        depositUseCase.execute(destination = AccountId("100"), amount = 10)
+
+        assertFailsWith<InsufficientFundsException> {
+            transferUseCase.execute(origin = AccountId("100"), destination = AccountId("300"), amount = 11)
+        }
+
+        assertEquals(10, repository.findById(AccountId("100"))?.balance)
+        assertNull(repository.findById(AccountId("300")))
     }
 }

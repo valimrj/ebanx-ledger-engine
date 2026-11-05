@@ -94,6 +94,28 @@ class EventScenariosTest {
         }
     }
 
+    /**
+     * Esse cenário não está nos exemplos do enunciado, mas o checklist da
+     * EBANX deixa explícito que saque "respeitando saldo insuficiente" é um
+     * ponto conceitual a validar. Não é 404 (a conta "300" existe); eu
+     * escolhi 400 porque é o pedido que está malformado frente ao estado
+     * atual, não um recurso que não existe.
+     */
+    @Test
+    fun `eu tento sacar mais do que a conta tem e recebo 400`() = testApplication {
+        application { module() }
+
+        postEvent("""{"type":"deposit","destination":"400","amount":10}""")
+
+        val response = postEvent("""{"type":"withdraw","origin":"400","amount":11}""")
+
+        assertEquals(HttpStatusCode.BadRequest, response.status)
+        assertEquals("0", response.bodyAsText())
+
+        val balanceAfter = client.get("/balance?account_id=400")
+        assertEquals("10", balanceAfter.bodyAsText())
+    }
+
     private suspend fun io.ktor.server.testing.ApplicationTestBuilder.postEvent(body: String) =
         client.post("/event") {
             contentType(ContentType.Application.Json)

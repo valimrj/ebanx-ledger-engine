@@ -54,6 +54,11 @@ verifica automaticamente.
 | `GET` | `/balance?account_id=:id` | Saldo da conta (texto plano); `404 0` se não existir |
 | `POST` | `/event` | `{"type": "deposit"\|"withdraw"\|"transfer", ...}` |
 
+Regras de negócio que valem pra `withdraw` e `transfer` (a segunda reusa a
+primeira): a conta de origem precisa existir (`404` se não existir) e
+precisa ter saldo suficiente (`400` se não tiver — essa invariante vive em
+`Account.withdraw`, não é só validação de borda na rota).
+
 ## CI
 
 Todo push/PR roda `./gradlew test` no GitHub Actions

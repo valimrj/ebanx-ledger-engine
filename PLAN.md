@@ -67,6 +67,16 @@ domínio, casos de uso ou HTTP.
 12. **docs**: README com instruções de build/run/deploy e decisões de arquitetura.
 13. **chore**: deploy público (Docker + plataforma gratuita) pra rodar o
     suite automatizado da EBANX contra a URL.
+14. **refactor**: junto a porta `AccountRepository` dentro de `infrastructure`
+    (uma pasta a menos — ver nota abaixo sobre o custo dessa simplificação).
+15. **feat**: `Account.withdraw` passa a lançar `InsufficientFundsException`
+    quando o saque pede mais do que a conta tem — essa invariante não estava
+    nos exemplos do enunciado, mas o checklist da EBANX deixa explícito que
+    é esperada ("saques reduzem o saldo, respeitando saldo insuficiente").
+    Fica no domínio, não no caso de uso, porque é uma regra do que uma
+    `Account` é, não uma regra de orquestração — `Transfer` ganha a mesma
+    proteção de graça, por composição, sem eu repetir o `if`. Na HTTP, mapeio
+    pra 400 (a conta existe, só não tem saldo — não é um 404).
 
 ## Critério de pronto por história
 Só considero uma história fechada quando: o teste que escrevi pra ela falha

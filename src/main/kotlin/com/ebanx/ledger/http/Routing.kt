@@ -7,6 +7,7 @@ import com.ebanx.ledger.application.ResetUseCase
 import com.ebanx.ledger.application.TransferUseCase
 import com.ebanx.ledger.application.WithdrawUseCase
 import com.ebanx.ledger.domain.AccountId
+import com.ebanx.ledger.domain.InsufficientFundsException
 import com.ebanx.ledger.infrastructure.InMemoryAccountRepository
 import com.ebanx.ledger.infrastructure.AccountRepository
 import io.ktor.http.ContentType
@@ -45,6 +46,12 @@ fun Application.businessRouting(repository: AccountRepository = InMemoryAccountR
     install(StatusPages) {
         exception<AccountNotFoundException> { call, _ ->
             call.respondText("0", ContentType.Text.Plain, HttpStatusCode.NotFound)
+        }
+        // O enunciado não cobre esse caso nos exemplos, então a escolha de
+        // status (400, não 404 — a conta existe, só não tem saldo) é minha,
+        // não ditada pelo spec.
+        exception<InsufficientFundsException> { call, _ ->
+            call.respondText("0", ContentType.Text.Plain, HttpStatusCode.BadRequest)
         }
     }
 

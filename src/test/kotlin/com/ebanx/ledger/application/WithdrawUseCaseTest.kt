@@ -1,6 +1,7 @@
 package com.ebanx.ledger.application
 
 import com.ebanx.ledger.domain.AccountId
+import com.ebanx.ledger.domain.InsufficientFundsException
 import com.ebanx.ledger.infrastructure.InMemoryAccountRepository
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -26,5 +27,16 @@ class WithdrawUseCaseTest {
         val account = withdrawUseCase.execute(origin = AccountId("100"), amount = 5)
 
         assertEquals(15, account.balance)
+    }
+
+    @Test
+    fun `eu tento sacar mais do que o saldo e recebo InsufficientFundsException, sem alterar o saldo`() {
+        depositUseCase.execute(destination = AccountId("100"), amount = 10)
+
+        assertFailsWith<InsufficientFundsException> {
+            withdrawUseCase.execute(origin = AccountId("100"), amount = 11)
+        }
+
+        assertEquals(10, repository.findById(AccountId("100"))?.balance)
     }
 }

@@ -5,9 +5,11 @@ import com.ebanx.ledger.domain.AccountId
 import com.ebanx.ledger.infrastructure.AccountRepository
 
 /**
- * Único motivo de mudar: a regra de saque. Não valido saldo insuficiente de
- * propósito — o enunciado não testa esse caso, então não antecipo uma regra
- * que não foi pedida.
+ * Único motivo de mudar: orquestrar o saque — buscar a conta e persistir o
+ * resultado. A regra "não pode sacar mais do que tem" eu não repito aqui:
+ * ela já vive em `Account.withdraw`, que lança `InsufficientFundsException`
+ * e deixa essa exceção propagar pra fora, sem eu precisar de um try/catch
+ * só pra re-lançar a mesma coisa.
  */
 class WithdrawUseCase(private val repository: AccountRepository) {
 
