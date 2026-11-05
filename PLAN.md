@@ -50,6 +50,43 @@ desacoplamento de serviços). DynamoDB fica isolado atrás de `AccountRepository
 — se me pedirem durabilidade depois, eu troco só a implementação, sem tocar em
 domínio, casos de uso ou HTTP.
 
+## Como garanto consistência sob concorrência (ponto crítico)
+Minha primeira versão de `DepositUseCase`/`WithdrawUseCase` fazia
+`repository.findById(id)` e depois `repository.save(novaConta)` como dois
+passos separados. `ConcurrentHashMap` protege a estrutura de dados, mas não
+protege essa sequência ler → decidir → escrever: duas requisições
+concorrentes de saque na mesma conta podiam ler o mesmo saldo antigo e as
+duas escreverem por cima uma da outra (lost update), ou as duas verem
+saldo suficiente na leitura e as duas saques passarem, deixando a conta
+negativa — o bug exato que `InsufficientFundsException` existe pra evitar.
+
+Corrigi substituindo `findById`+`save` por `AccountRepository.update(id,
+mutate)`, implementado com `ConcurrentHashMap.compute`: ler, transformar e
+gravar numa única operação atômica por chave. Duas chamadas concorrentes
+pra mesma conta são serializadas pelo próprio `ConcurrentHashMap` — a
+segunda só decide depois que a primeira terminou de escrever. Como bônus,
+se `mutate` lançar uma exceção (saldo insuficiente), nada é escrito — o
+rollback é automático.
+
+Provei isso com um teste real de concorrência (não só leitura de código):
+200 threads fazendo depósito de 1 simultaneamente na mesma conta, soltas
+todas ao mesmo tempo por uma `CountDownLatch`, e o saldo final tem que ser
+exatamente 200. Sem a correção, esse teste seria flaky (resultado variável
+e menor que 200); com ela, é determinístico.
+
+`TransferUseCase` continua sendo duas atualizações atômicas separadas
+(withdraw da origem, depois deposit no destino) — cada uma individualmente
+atômica e consistente, mas a transferência como um todo não é uma única
+transação atômica entre as duas contas. Isso é uma escolha consciente, não
+um descuido: como `deposit` nunca falha, se o `withdraw` da origem for bem
+sucedido, o `deposit` do destino sempre vai completar — a única janela é um
+leitor concorrente poder ver, por uma fração de segundo, a origem já
+debitada e o destino ainda não creditado (o dinheiro "em trânsito"), sem
+nunca criar ou destruir saldo. Pra fechar essa janela eu precisaria de um
+lock global cobrindo as duas contas, o que serializaria toda transferência
+do sistema — trade-off que eu não faria sem o enunciado pedir durabilidade
+ou isolamento transacional explícito.
+
 ## Histórias (cada uma = 1 commit pequeno, testável, em primeira pessoa)
 
 1. **chore**: subo o esqueleto Kotlin/Ktor + arquitetura hexagonal + CI + teste

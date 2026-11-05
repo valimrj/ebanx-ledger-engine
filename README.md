@@ -59,6 +59,18 @@ primeira): a conta de origem precisa existir (`404` se não existir) e
 precisa ter saldo suficiente (`400` se não tiver — essa invariante vive em
 `Account.withdraw`, não é só validação de borda na rota).
 
+## Consistência sob concorrência
+
+`AccountRepository.update(id, mutate)` lê, transforma e grava como uma
+única operação atômica (via `ConcurrentHashMap.compute`) — não como um
+`findById` seguido de um `save` separado, que deixaria uma janela pra duas
+requisições concorrentes na mesma conta perderem uma atualização ou as
+duas passarem um saque que deveria falhar. Isso tem um teste real provando
+(200 threads depositando 1 ao mesmo tempo, saldo final tem que ser 200,
+determinístico). Detalhes e o trade-off que assumo em transferência (cada
+perna atômica, mas as duas pernas não são uma transação atômica única)
+estão no [`PLAN.md`](./PLAN.md).
+
 ## CI
 
 Todo push/PR roda `./gradlew test` no GitHub Actions

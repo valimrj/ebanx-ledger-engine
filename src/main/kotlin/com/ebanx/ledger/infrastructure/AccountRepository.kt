@@ -20,7 +20,18 @@ import com.ebanx.ledger.domain.AccountId
 interface AccountRepository {
     fun findById(id: AccountId): Account?
 
-    fun save(account: Account): Account
+    /**
+     * Lê, transforma e grava como UMA operação atômica — não como
+     * `findById` seguido de um `save` separado. Isso importa porque
+     * `withdraw`/`deposit` fazem "ler saldo, decidir, escrever saldo", e
+     * ler-decidir-escrever em dois passos é exatamente onde duas
+     * requisições concorrentes na mesma conta perderiam uma atualização
+     * (lost update) mesmo com uma estrutura de dados thread-safe por
+     * baixo. `mutate` recebe a conta atual (`null` se não existir) e
+     * devolve a conta nova; se `mutate` lançar uma exceção (ex.: saldo
+     * insuficiente), nada é escrito — o estado anterior fica intacto.
+     */
+    fun update(id: AccountId, mutate: (Account?) -> Account): Account
 
     fun clear()
 }
