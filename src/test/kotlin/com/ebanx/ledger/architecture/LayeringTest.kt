@@ -13,13 +13,18 @@ import org.junit.jupiter.api.Test
  * Regra central: domain e application não podem depender de infrastructure
  * nem de http. A dependência só pode ir "de fora pra dentro" — http e
  * infrastructure conhecem domain/application; o inverso, nunca.
+ *
+ * Eu limito o escopo a `scopeFromProduction()` (só `src/main`) de propósito:
+ * nos testes é normal e saudável instanciar `InMemoryAccountRepository`
+ * diretamente pra montar o cenário — a regra de camadas é sobre o código que
+ * vai pra produção, não sobre como eu monto um teste.
  */
 class LayeringTest {
 
     @Test
     fun `domain nao pode depender de http nem de infrastructure`() {
         Konsist
-            .scopeFromProject()
+            .scopeFromProduction()
             .files
             .withPackage("com.ebanx.ledger.domain..")
             .assertFalse {
@@ -34,7 +39,7 @@ class LayeringTest {
     @Test
     fun `application nao pode depender de http nem de infrastructure`() {
         Konsist
-            .scopeFromProject()
+            .scopeFromProduction()
             .files
             .withPackage("com.ebanx.ledger.application..")
             .assertFalse {
@@ -49,7 +54,7 @@ class LayeringTest {
     @Test
     fun `ports nao pode depender de infrastructure nem de http`() {
         Konsist
-            .scopeFromProject()
+            .scopeFromProduction()
             .files
             .withPackage("com.ebanx.ledger.ports..")
             .assertFalse {
