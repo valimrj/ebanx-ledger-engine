@@ -22,7 +22,11 @@ class EventDispatcher(
         "deposit" -> depositResponse(request)
         "withdraw" -> withdrawResponse(request)
         "transfer" -> transferResponse(request)
-        else -> throw UnknownEventTypeException(request.type)
+        // O enunciado só define esses três tipos; não crio uma exceção de
+        // domínio pra um caso que ele não descreve — isso seria antecipar
+        // cenário fora da especificação. `IllegalArgumentException` já diz
+        // o que precisa dizer: a entrada está fora do que a API aceita.
+        else -> throw IllegalArgumentException("Unknown event type: ${request.type}")
     }
 
     private fun depositResponse(request: EventRequest): EventResponse {
@@ -44,14 +48,10 @@ class EventDispatcher(
         return EventResponse(origin = result.origin.toView(), destination = result.destination.toView())
     }
 
+    // Mesmo raciocínio: campo obrigatório ausente pro tipo de evento também
+    // não está nos exemplos do enunciado. IllegalArgumentException basta.
     private fun requireField(value: String?, fieldName: String): String =
-        value ?: throw MissingEventFieldException(fieldName)
+        value ?: throw IllegalArgumentException("Missing field: $fieldName")
 }
 
 private fun Account.toView() = AccountView(id = id.value, balance = balance)
-
-/** Campo obrigatório pro tipo de evento não veio no corpo da requisição. */
-class MissingEventFieldException(val fieldName: String) : RuntimeException("Missing field: $fieldName")
-
-/** `type` recebido não é um dos três que o enunciado define. */
-class UnknownEventTypeException(val type: String) : RuntimeException("Unknown event type: $type")
