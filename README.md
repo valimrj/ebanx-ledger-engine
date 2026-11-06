@@ -1,134 +1,137 @@
 # EBANX Ledger Engine
 
-A balance/events API (deposit, withdraw, transfer) for the EBANX take-home
-assignment. No persistence — everything in memory, as the assignment asks.
+API de saldo/eventos (deposit, withdraw, transfer) pro take-home assignment
+da EBANX. Sem persistência — tudo em memória, como o enunciado pede.
 
-## How I run it locally
+## Como eu rodo localmente
 
 ```bash
 ./gradlew run
 ```
 
-The API comes up on `http://localhost:8080`.
+A API sobe em `http://localhost:8080`.
 
-## How I run the tests
+## Como eu rodo os testes
 
 ```bash
 ./gradlew test
 ```
 
-This runs unit tests (domain and use cases), architecture tests (Konsist,
-guaranteeing the hexagonal architecture doesn't degrade) and integration
-tests (the HTTP routes, including the exact scenario sequence from the
-assignment).
+Isso roda testes unitários (domínio e casos de uso), testes de arquitetura
+(Konsist, garantindo que a arquitetura hexagonal não degrade) e testes de
+integração (as rotas HTTP, incluindo a sequência exata de cenários do
+enunciado).
 
-## Why Ktor, not Spring Boot
+## Por que Ktor, e não Spring Boot
 
-Ktor is JetBrains' framework for HTTP servers and clients in Kotlin. I
-picked it over Spring Boot on purpose, not out of familiarity:
+Ktor é o framework da JetBrains pra servidores e clientes HTTP em Kotlin.
+Eu escolhi ele no lugar do Spring Boot de propósito, não por familiaridade:
 
-- **Kotlin by design, not Kotlin-on-top.** It's written from scratch in
-  Kotlin, so it uses DSLs, extension functions and coroutines natively —
-  the routing code stays short and readable (`routing { post("/event")
-  { ... } }` reads like plain Kotlin, not an annotated class).
-- **Async by default, without the ceremony.** Coroutines replace callbacks
-  and reactive streams: the code reads as if it were synchronous, but
-  doesn't block threads — useful for many simultaneous connections,
-  without a reactive API to learn.
-- **Light and modular.** I only install what I actually use —
-  `ContentNegotiation` for JSON and `StatusPages` for error mapping (see
-  `Application.kt` and `Routing.kt`) — as plugins, not a framework that
-  turns everything on by default. Startup is fast and memory use stays
-  low, which I confirmed running `./gradlew run` locally.
-- **Little "magic".** No heavy reliance on reflection or annotations, so
-  the application's flow is explicit and easy to follow and debug. The
-  route that exposes `POST /event` is a 3-line function: read the
-  request, call `EventDispatcher`, respond. A Spring equivalent
-  (`@RestController` + `@PostMapping`) isn't actually simpler here — it
-  trades those 3 lines for annotations processed by reflection, a DI
-  container, and a bean lifecycle I don't need for 3 routes. Error
-  mapping follows the same idea: `StatusPages` maps domain exceptions to
-  HTTP status codes as one explicit function, instead of an
-  `@ExceptionHandler`/`@ControllerAdvice` layer.
-- **Flexible engine choice.** I run on Netty, but Ktor also supports CIO,
-  Jetty or Tomcat depending on what a project needs.
-- **Simple tests.** `testApplication` boots the application in memory,
-  with no real server needed — that's exactly what `EventScenariosTest`
-  and `ApplicationTest` use to exercise the real HTTP routes.
-- **It matches the assignment's own "simplicity" criterion.** The EBANX
-  checklist asks to "avoid over-engineering" and says "it's not necessary
-  to apply complex design patterns". A DI container, constructor/field
-  injection via `@Autowired`, Spring Data I wouldn't even use (everything
-  here is in memory) — that's heavy tooling for a small problem.
+- **Kotlin de verdade, não Kotlin por cima.** Ele foi escrito do zero em
+  Kotlin, então usa DSLs, extension functions e coroutines de forma
+  nativa — o código de rotas fica curto e legível (`routing { post("/event")
+  { ... } }` lê como Kotlin puro, não como uma classe anotada).
+- **Assíncrono por padrão, sem a cerimônia.** As coroutines dispensam
+  callbacks e reactive streams: o código tem cara de síncrono, mas não
+  bloqueia threads — útil com muitas conexões simultâneas, sem precisar
+  aprender uma API reativa.
+- **Leve e modular.** Eu só instalo o que realmente uso —
+  `ContentNegotiation` pra JSON e `StatusPages` pro mapeamento de erro
+  (ver `Application.kt` e `Routing.kt`) — como plugins, não um framework
+  que liga tudo por padrão. O startup é rápido e o consumo de memória
+  fica baixo, o que confirmei rodando `./gradlew run` localmente.
+- **Pouca "mágica".** Não depende de reflection nem de anotações em
+  excesso, então o fluxo da aplicação é explícito e fácil de seguir e
+  depurar. A rota que expõe `POST /event` é uma função de 3 linhas: ler
+  a requisição, chamar o `EventDispatcher`, responder. Um equivalente em
+  Spring (`@RestController` + `@PostMapping`) não é mais simples aqui —
+  ele troca essas 3 linhas por anotações processadas via reflection, um
+  container de DI e um ciclo de vida de bean que eu não preciso pra 3
+  rotas. O mapeamento de erro segue a mesma lógica: `StatusPages` mapeia
+  exceções de domínio pra status HTTP como uma função explícita só, em
+  vez de uma camada `@ExceptionHandler`/`@ControllerAdvice`.
+- **Flexibilidade de engine.** Eu rodo em Netty, mas o Ktor também
+  suporta CIO, Jetty ou Tomcat dependendo da necessidade do projeto.
+- **Testes simples.** O `testApplication` sobe a aplicação em memória,
+  sem precisar de um servidor real — é exatamente isso que
+  `EventScenariosTest` e `ApplicationTest` usam pra exercitar as rotas
+  HTTP reais.
+- **Bate direto com o critério "simplicidade" do enunciado.** O
+  checklist da EBANX pede "evite over-engineering" e diz "não é
+  necessário aplicar padrões de design complexos". Um container de DI,
+  injeção via `@Autowired`, Spring Data que eu nem usaria (tudo aqui é
+  em memória) — é ferramenta pesada pra um problema pequeno.
 
-Where Ktor is worth it: microservices, lean APIs, Kotlin Multiplatform
-projects, or whenever low overhead and explicit control matter more than
-a batteries-included framework. Where it might not be the best fit: large
-projects that lean heavily on the Spring ecosystem (Spring Data, Security,
-Batch, ready-made integrations), or teams already fluent in Spring Boot —
-there, Spring still ships more out of the box, and Ktor's gain might not
-offset the switch. Ktor also leaves more for you to assemble yourself,
-like dependency injection (usually with Koin) and project structure —
-here I kept DI manual (plain constructor wiring in `Routing.kt`) since the
-object graph is small enough not to need a framework for it.
+Quando vale a pena o Ktor: microsserviços, APIs enxutas, projetos Kotlin
+Multiplatform, ou quando baixo overhead e controle explícito importam
+mais do que um framework "tudo incluso". Quando talvez não seja a
+melhor opção: projetos grandes que dependem muito do ecossistema Spring
+(Spring Data, Security, Batch, integrações prontas), ou times que já
+dominam Spring Boot — nesses casos, o Spring ainda entrega mais coisa
+pronta, e o ganho do Ktor pode não compensar a troca. O Ktor também
+exige que eu monte mais coisa por conta própria, como injeção de
+dependência (geralmente com Koin) e estrutura de projeto — aqui eu
+mantive a DI manual (wiring direto por construtor em `Routing.kt`), já
+que o grafo de objetos é pequeno o suficiente pra não precisar de um
+framework pra isso.
 
-This isn't a claim that Spring is bad — for a larger API with several
-modules, Spring Data/Security/Cloud earn their weight. For this
-take-home, Ktor is the right-sized tool.
+Isso não quer dizer que Spring é ruim — pra uma API maior, com vários
+módulos, Spring Data/Security/Cloud compensam o peso. Pra esse
+take-home, Ktor é a ferramenta do tamanho certo.
 
-## My architecture decisions
+## Minhas decisões de arquitetura
 
-I wrote the full reasoning in [`PLAN.md`](./PLAN.md): why Kotlin + Ktor,
-why no Kafka/DynamoDB, how TDD guided each story, how the architecture
-tests protect the hexagonal boundary, and why the assignment's scenario
-sequence is a sequential test and not a `@TestFactory`.
+Eu escrevi o raciocínio completo em [`PLAN.md`](./PLAN.md): por que Kotlin +
+Ktor, por que sem Kafka/DynamoDB, como TDD guiou cada história, como os
+testes de arquitetura protegem a fronteira hexagonal, e por que a sequência
+de cenários do enunciado é um teste sequencial e não um `@TestFactory`.
 
-Summarizing the structure:
+Resumindo a estrutura:
 
 ```
 src/main/kotlin/com/ebanx/ledger/
-├── domain/          # Account — pure business rule, no Ktor
-├── application/     # one use case per operation (SRP)
-├── infrastructure/  # AccountRepository (the port) + InMemoryAccountRepository (the only impl)
-└── http/            # DTOs, EventDispatcher, Ktor routes
+├── domain/          # Account — regra de negócio pura, sem Ktor
+├── application/     # um caso de uso por operação (SRP)
+├── infrastructure/  # AccountRepository (a porta) + InMemoryAccountRepository (a única impl)
+└── http/            # DTOs, EventDispatcher, rotas Ktor
 ```
 
-I simplified things by putting the `AccountRepository` port in the same
-package as its single implementation, instead of a separate `ports`
-package just for one interface — one less folder. `domain`/`application`
-may import the interface, but never the concrete implementation
-(`InMemoryAccountRepository`) nor anything from `http`/Ktor — this finer
-rule is what `LayeringTest` checks automatically.
+Simplifiquei juntando a porta `AccountRepository` no mesmo pacote da sua
+única implementação, em vez de um pacote `ports` separado só pra uma
+interface — uma pasta a menos. `domain`/`application` podem importar a
+interface, mas nunca a implementação concreta (`InMemoryAccountRepository`)
+nem nada de `http`/Ktor — essa regra mais fina é o que o `LayeringTest`
+verifica automaticamente.
 
 ## Endpoints
 
-| Method | Route | Description |
+| Método | Rota | Descrição |
 |---|---|---|
-| `POST` | `/reset` | Clears all state |
-| `GET` | `/balance?account_id=:id` | Account balance (plain text); `404 0` if it doesn't exist |
+| `POST` | `/reset` | Limpa todo o estado |
+| `GET` | `/balance?account_id=:id` | Saldo da conta (texto plano); `404 0` se não existir |
 | `POST` | `/event` | `{"type": "deposit"\|"withdraw"\|"transfer", ...}` |
 
-Business rules that apply to `withdraw` and `transfer` (the second reuses
-the first): the origin account must exist (`404` if it doesn't) and must
-have sufficient funds (`400` if it doesn't — this invariant lives in
-`Account.withdraw`, it's not just edge validation in the route). A zero or
-negative deposit/withdraw amount is also rejected with `400` — without
-that check, a negative withdraw would pass the balance validation and
-behave like an unlimited deposit.
+Regras de negócio que valem pra `withdraw` e `transfer` (a segunda reusa a
+primeira): a conta de origem precisa existir (`404` se não existir) e
+precisa ter saldo suficiente (`400` se não tiver — essa invariante vive em
+`Account.withdraw`, não é só validação de borda na rota). Valor de
+depósito/saque zero ou negativo também é rejeitado com `400` — sem essa
+checagem, um saque negativo passaria pela validação de saldo e se
+comportaria como um depósito sem limite.
 
-## Consistency under concurrency
+## Consistência sob concorrência
 
-`AccountRepository.update(id, mutate)` reads, transforms and writes as
-one single atomic operation (via `ConcurrentHashMap.compute`) — not as a
-`findById` followed by a separate `save`, which would leave a window for
-two concurrent requests on the same account to lose an update, or for
-both to pass a withdraw that should have failed. This has a real test
-proving it (200 threads depositing 1 at the same time, final balance has
-to be 200, deterministically). Details and the trade-off I accept on
-transfers (each leg atomic, but the two legs aren't a single atomic
-transaction) are in [`PLAN.md`](./PLAN.md).
+`AccountRepository.update(id, mutate)` lê, transforma e grava como uma
+única operação atômica (via `ConcurrentHashMap.compute`) — não como um
+`findById` seguido de um `save` separado, que deixaria uma janela pra duas
+requisições concorrentes na mesma conta perderem uma atualização ou as
+duas passarem um saque que deveria falhar. Isso tem um teste real provando
+(200 threads depositando 1 ao mesmo tempo, saldo final tem que ser 200,
+determinístico). Detalhes e o trade-off que assumo em transferência (cada
+perna atômica, mas as duas pernas não são uma transação atômica única)
+estão no [`PLAN.md`](./PLAN.md).
 
 ## CI
 
-Every push/PR runs `./gradlew test` on GitHub Actions
+Todo push/PR roda `./gradlew test` no GitHub Actions
 (`.github/workflows/ci.yml`).
