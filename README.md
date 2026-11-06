@@ -82,10 +82,12 @@ take-home, Ktor é a ferramenta do tamanho certo.
 
 ## Minhas decisões de arquitetura
 
-Eu escrevi o raciocínio completo em [`PLAN.md`](./PLAN.md): por que Kotlin +
-Ktor, por que sem Kafka/DynamoDB, como TDD guiou cada história, como os
-testes de arquitetura protegem a fronteira hexagonal, e por que a sequência
-de cenários do enunciado é um teste sequencial e não um `@TestFactory`.
+Eu escrevi o raciocínio completo em [`docs/spec.md`](./docs/spec.md) —
+minha especificação no formato SDD (requisitos funcionais e
+não-funcionais, fora de escopo, critérios de aceite) — e aqui no README
+(por que Kotlin + Ktor, por que sem Kafka/DynamoDB). O histórico de como
+TDD guiou cada história e por que a sequência de cenários do enunciado é
+um teste sequencial e não um `@TestFactory` também está no `docs/spec.md`.
 
 Resumindo a estrutura:
 
@@ -130,7 +132,7 @@ duas passarem um saque que deveria falhar. Isso tem um teste real provando
 (200 threads depositando 1 ao mesmo tempo, saldo final tem que ser 200,
 determinístico). Detalhes e o trade-off que assumo em transferência (cada
 perna atômica, mas as duas pernas não são uma transação atômica única)
-estão no [`PLAN.md`](./PLAN.md).
+estão no [`docs/spec.md`](./docs/spec.md).
 
 ## CI
 
