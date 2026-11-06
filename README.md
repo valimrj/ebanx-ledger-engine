@@ -22,6 +22,35 @@ guaranteeing the hexagonal architecture doesn't degrade) and integration
 tests (the HTTP routes, including the exact scenario sequence from the
 assignment).
 
+## Why Ktor, not Spring Boot
+
+I picked Ktor over Spring Boot on purpose, not out of familiarity:
+
+- **Less magic, more explicit control.** The route that exposes
+  `POST /event` is a 3-line function in [`Routing.kt`](./src/main/kotlin/com/ebanx/ledger/http/Routing.kt):
+  read the request, call `EventDispatcher`, respond. A Spring equivalent
+  (`@RestController` + `@PostMapping`) isn't actually simpler here — it
+  trades those 3 lines for annotations processed by reflection, a DI
+  container, and a bean lifecycle I don't need for 3 routes.
+- **Startup and footprint.** Ktor with Netty boots in ~1-2s with a handful
+  of dependencies. Spring Boot boots the whole Spring context —
+  auto-configuration scanning, bean creation — real overhead for a
+  3-endpoint API with no database.
+- **It matches the assignment's own "simplicity" criterion.** The EBANX
+  checklist asks to "avoid over-engineering" and says "it's not necessary
+  to apply complex design patterns". A DI container, constructor/field
+  injection via `@Autowired`, Spring Data I wouldn't even use (everything
+  here is in memory) — that's heavy tooling for a small problem.
+- **Error mapping lives in one visible place.** `StatusPages` (installed
+  in `Routing.kt`) maps domain exceptions to HTTP status codes as one
+  explicit function. The Spring equivalent (`@ExceptionHandler`/
+  `@ControllerAdvice`) works too, but it's another layer of
+  annotation-driven magic to follow.
+
+This isn't a claim that Spring is bad — for a larger API with several
+modules, Spring Data/Security/Cloud earn their weight. For this
+take-home, Ktor is the right-sized tool.
+
 ## My architecture decisions
 
 I wrote the full reasoning in [`PLAN.md`](./PLAN.md): why Kotlin + Ktor,
