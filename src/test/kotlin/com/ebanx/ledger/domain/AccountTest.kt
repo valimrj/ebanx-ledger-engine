@@ -6,10 +6,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
-/**
- * I test the domain class in isolation, no Ktor, no repository - just pure
- * business rules.
- */
 class AccountTest {
 
     @Test

@@ -13,12 +13,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
-/**
- * EventDispatcher is the one place that decides, from the `type` received
- * in the JSON, which use case to call. I isolate that decision here,
- * outside the Ktor route, to keep the HTTP handler's cyclomatic complexity
- * low - it only parses and delegates.
- */
 class EventDispatcherTest {
 
     private val repository = InMemoryAccountRepository()

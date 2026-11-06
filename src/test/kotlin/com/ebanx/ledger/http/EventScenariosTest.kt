@@ -12,24 +12,6 @@ import io.ktor.server.testing.testApplication
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-/**
- * Story 11 of my plan: I reproduce the exact sequence of requests and
- * responses the EBANX assignment describes, including each response's
- * body, not just the status code.
- *
- * I write this as ONE sequential test, not as a `@TestFactory` with
- * `DynamicTest`: each step of the assignment depends on the balance the
- * previous step left behind (e.g. "deposit into existing account" only
- * makes sense after "create account with initial balance"), and all the
- * steps need to run against the same live test server, on the same
- * client. `DynamicTest` assumes cases that are independent of each other
- * - forcing that here would mean recreating the application at every step
- * (losing the state). A sequential test is the right model for an
- * ordered regression suite like this one.
- *
- * The variable-data tests that actually benefit from `DynamicTest` are in
- * `EventDispatcherTest` (story 8), where each case is independent.
- */
 class EventScenariosTest {
 
     @Test

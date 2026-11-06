@@ -8,11 +8,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
-/**
- * I test the `AccountRepository` port through the in-memory implementation -
- * it's the only implementation that exists right now, so there's no reason
- * to duplicate the tests on a separate fake.
- */
 class InMemoryAccountRepositoryTest {
 
     @Test
