@@ -19,7 +19,7 @@ A API sobe em `http://localhost:8080`.
 ```
 
 Isso roda testes unitários (domínio e casos de uso), testes de arquitetura
-(Konsist, garantindo que a arquitetura hexagonal não degrade) e testes de
+(Konsist, garantindo que a separação de camadas não degrade) e testes de
 integração (as rotas HTTP, incluindo a sequência exata de cenários do
 enunciado).
 
@@ -88,6 +88,20 @@ não-funcionais, fora de escopo, critérios de aceite) — e aqui no README
 (por que Kotlin + Ktor, por que sem Kafka/DynamoDB). O histórico de como
 TDD guiou cada história e por que a sequência de cenários do enunciado é
 um teste sequencial e não um `@TestFactory` também está no `docs/spec.md`.
+
+**Por que chamo isso de "hexagonal" sem ser hexagonal "de livro".** Eu uso
+o rótulo porque é o mais próximo do que fiz, mas não implementei a
+cerimônia completa: não tem uma porta (interface) separada por caso de
+uso, nem uma pasta `adapters`. O enunciado pede simplicidade, e ir atrás
+da forma "correta" de hexagonal (ou de Clean Architecture, que tem o
+mesmo princípio de isolar o domínio por trás de uma inversão de
+dependência, só que com mais camadas nomeadas — `entities`,
+`use-cases`, `interface-adapters`) teria me custado mais indireção do
+que esse problema justifica. O que eu de fato apliquei, das duas, é só
+a regra de dependência: `domain`/`application` não podem importar
+`io.ktor` nem a implementação concreta do repositório — e essa regra,
+ao contrário do nome "hexagonal" em si, é verificada por teste
+(`LayeringTest`), não só documentada.
 
 Resumindo a estrutura:
 
