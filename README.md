@@ -1,7 +1,8 @@
 # EBANX Ledger Engine
 
-API de saldo/eventos (deposit, withdraw, transfer) pro take-home assignment
-da EBANX. Sem persistência — tudo em memória, como o enunciado pede.
+Minha solução pro take-home assignment da EBANX: uma API de saldo/eventos
+(deposit, withdraw, transfer). Fiz sem persistência — tudo em memória,
+como o enunciado pede.
 
 ## Como eu rodo localmente
 
@@ -111,13 +112,13 @@ verifica automaticamente.
 | `GET` | `/balance?account_id=:id` | Saldo da conta (texto plano); `404 0` se não existir |
 | `POST` | `/event` | `{"type": "deposit"\|"withdraw"\|"transfer", ...}` |
 
-Regras de negócio que valem pra `withdraw` e `transfer` (a segunda reusa a
-primeira): a conta de origem precisa existir (`404` se não existir) e
-precisa ter saldo suficiente (`400` se não tiver — essa invariante vive em
-`Account.withdraw`, não é só validação de borda na rota). Valor de
-depósito/saque zero ou negativo também é rejeitado com `400` — sem essa
-checagem, um saque negativo passaria pela validação de saldo e se
-comportaria como um depósito sem limite.
+As regras de negócio que eu aplico pra `withdraw` e `transfer` (a segunda
+reusa a primeira): a conta de origem precisa existir (`404` se não
+existir) e precisa ter saldo suficiente (`400` se não tiver — essa
+invariante vive em `Account.withdraw`, não é só validação de borda na
+rota). Eu também rejeito valor de depósito/saque zero ou negativo com
+`400` — sem essa checagem, um saque negativo passaria pela validação de
+saldo e se comportaria como um depósito sem limite.
 
 ## Consistência sob concorrência
 
@@ -133,5 +134,5 @@ estão no [`PLAN.md`](./PLAN.md).
 
 ## CI
 
-Todo push/PR roda `./gradlew test` no GitHub Actions
+Configurei pra rodar `./gradlew test` no GitHub Actions a cada push/PR
 (`.github/workflows/ci.yml`).
