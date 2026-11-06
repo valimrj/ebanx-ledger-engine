@@ -1,10 +1,11 @@
 # Especificação — EBANX Ledger Engine
 
 > Documento vivo, no formato SDD (Spec-Driven Development): descreve o
-> que o sistema precisa fazer antes de descrever como eu fiz. Decisões de
-> implementação que não mudam o comportamento externo (como eu organizei
-> os pacotes, por que escolhi Ktor) ficam no [`README.md`](../README.md).
-> Este arquivo nasceu do meu `PLAN.md` original, reestruturado como spec.
+> que o sistema precisa fazer e, na seção 6, por que fiz as escolhas de
+> arquitetura que fiz. Regras de negócio ligadas a endpoints e
+> consistência sob concorrência estão no [`AGENTS.md`](../AGENTS.md);
+> instruções de build/run estão no [`README.md`](../README.md). Este
+> arquivo nasceu do meu `PLAN.md` original, reestruturado como spec.
 
 ## 1. Contexto
 
@@ -155,22 +156,108 @@ antecipar cenário fora da especificação:
   desacoplamento de serviço nesse problema.
 - Autenticação/autorização — o enunciado não define usuários nem
   permissões.
-- Transação atômica cross-conta em `transfer` (ver detalhe no README,
-  seção "Consistência sob concorrência") — cada perna é atômica
-  isoladamente, a operação completa não é uma transação distribuída.
+- Transação atômica cross-conta em `transfer` (ver detalhe no
+  `AGENTS.md`, seção "Consistência sob concorrência") — cada perna é
+  atômica isoladamente, a operação completa não é uma transação
+  distribuída.
 - Paginação, múltiplas moedas, juros, taxas — nenhum desses aparece no
   enunciado.
 
 ## 6. Decisões de arquitetura
 
-Resumo; o raciocínio completo de cada uma está no
-[`README.md`](../README.md):
-- Kotlin + Ktor no lugar de Spring Boot (seção "Por que Ktor, e não
-  Spring Boot" do README).
-- Arquitetura hexagonal: `domain`/`application` no centro, `http`/
-  `infrastructure` como adapters.
+### 6.1 Por que Kotlin + Ktor, e não Spring Boot
+
+Escolhi Ktor no lugar do Spring Boot de propósito, não por
+familiaridade:
+
+- **Kotlin de verdade, não Kotlin por cima.** Ktor foi escrito do zero
+  em Kotlin, então usa DSLs, extension functions e coroutines de forma
+  nativa — o código de rotas fica curto e legível (`routing { post("/event")
+  { ... } }` lê como Kotlin puro, não como uma classe anotada).
+- **Assíncrono por padrão, sem a cerimônia.** As coroutines dispensam
+  callbacks e reactive streams: o código tem cara de síncrono, mas não
+  bloqueia threads — útil com muitas conexões simultâneas, sem precisar
+  aprender uma API reativa.
+- **Leve e modular.** Só instalo o que realmente uso —
+  `ContentNegotiation` pra JSON e `StatusPages` pro mapeamento de erro
+  (ver `Application.kt` e `Routing.kt`) — como plugins, não um framework
+  que liga tudo por padrão.
+- **Pouca "mágica".** Não depende de reflection nem de anotações em
+  excesso, então o fluxo da aplicação é explícito e fácil de seguir e
+  depurar. A rota que expõe `POST /event` é uma função de 3 linhas: ler
+  a requisição, chamar o `EventDispatcher`, responder. Um equivalente em
+  Spring (`@RestController` + `@PostMapping`) não é mais simples aqui —
+  ele troca essas 3 linhas por anotações processadas via reflection, um
+  container de DI e um ciclo de vida de bean que eu não preciso pra 3
+  rotas.
+- **Flexibilidade de engine.** Rodo em Netty, mas o Ktor também suporta
+  CIO, Jetty ou Tomcat dependendo da necessidade do projeto.
+- **Testes simples.** O `testApplication` sobe a aplicação em memória,
+  sem precisar de um servidor real — é exatamente isso que
+  `EventScenariosTest` e `ApplicationTest` usam pra exercitar as rotas
+  HTTP reais.
+- **Bate direto com o critério "simplicidade" do enunciado.** O
+  checklist da EBANX pede "evite over-engineering" e diz "não é
+  necessário aplicar padrões de design complexos". Um container de DI,
+  injeção via `@Autowired`, Spring Data que eu nem usaria (tudo aqui é
+  em memória) — é ferramenta pesada pra um problema pequeno.
+
+Quando vale a pena o Ktor: microsserviços, APIs enxutas, projetos Kotlin
+Multiplatform, ou quando baixo overhead e controle explícito importam
+mais do que um framework "tudo incluso". Quando talvez não seja a
+melhor opção: projetos grandes que dependem muito do ecossistema Spring
+(Spring Data, Security, Batch, integrações prontas), ou times que já
+dominam Spring Boot — nesses casos, o Spring ainda entrega mais coisa
+pronta, e o ganho do Ktor pode não compensar a troca. O Ktor também
+exige montar mais coisa por conta própria, como injeção de dependência
+(geralmente com Koin) e estrutura de projeto — aqui mantive a DI manual
+(wiring direto por construtor em `Routing.kt`), já que o grafo de
+objetos é pequeno o suficiente pra não precisar de um framework pra
+isso.
+
+Isso não quer dizer que Spring é ruim — pra uma API maior, com vários
+módulos, Spring Data/Security/Cloud compensam o peso. Pra esse
+take-home, Ktor é a ferramenta do tamanho certo.
+
+### 6.2 Separação em camadas
+
+Uso "hexagonal" como rótulo aproximado do que fiz, não como
+implementação completa: não tem uma porta (interface) separada por
+caso de uso, nem uma pasta `adapters`. O enunciado pede simplicidade, e
+ir atrás da forma "correta" de hexagonal (ou de Clean Architecture, que
+tem o mesmo princípio de isolar o domínio por trás de uma inversão de
+dependência, só que com mais camadas nomeadas — `entities`, `use-cases`,
+`interface-adapters`) custaria mais indireção do que esse problema
+justifica. O que de fato aplico, das duas, é só a regra de dependência:
+`domain`/`application` não podem importar `io.ktor` nem a implementação
+concreta do repositório — e essa regra, ao contrário do nome
+"hexagonal" em si, é verificada por teste (`LayeringTest`), não só
+documentada.
+
+Estrutura:
+
+```
+src/main/kotlin/com/ebanx/ledger/
+├── domain/          # Account — regra de negócio pura, sem Ktor
+├── application/     # um caso de uso por operação (SRP)
+├── infrastructure/  # AccountRepository (a porta) + InMemoryAccountRepository (a única impl)
+├── exceptions/      # exceptions de domínio e de orquestração, num pacote só
+└── http/            # DTOs, EventDispatcher, rotas Ktor
+```
+
+Juntei a porta `AccountRepository` no mesmo pacote da sua única
+implementação, em vez de um pacote `ports` separado só pra uma
+interface — uma pasta a menos. `domain`/`application` podem importar a
+interface, mas nunca a implementação concreta (`InMemoryAccountRepository`)
+nem nada de `http`/Ktor — essa regra mais fina é o que o `LayeringTest`
+verifica automaticamente.
+
+### 6.3 Outras decisões
+
 - `AccountRepository.update(id, mutate)` como única forma de escrever
-  estado — ler, decidir e gravar como uma operação atômica.
+  estado — ler, decidir e gravar como uma operação atômica (ver
+  AGENTS.md, seção "Consistência sob concorrência", pros detalhes e
+  pro teste que comprova isso).
 - Testes de arquitetura (Konsist) em vez de só disciplina de equipe.
 
 ## 7. Critérios de aceite / Definition of Done
