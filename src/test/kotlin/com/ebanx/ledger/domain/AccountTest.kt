@@ -1,5 +1,7 @@
 package com.ebanx.ledger.domain
 
+import com.ebanx.ledger.exceptions.InsufficientFundsException
+import com.ebanx.ledger.exceptions.InvalidAmountException
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith

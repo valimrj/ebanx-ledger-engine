@@ -1,5 +1,8 @@
 package com.ebanx.ledger.domain
 
+import com.ebanx.ledger.exceptions.InsufficientFundsException
+import com.ebanx.ledger.exceptions.InvalidAmountException
+
 /**
  * Account identifier. I wrap the raw string in its own type so that an
  * "account id" never gets confused with any other string in the code.
@@ -50,17 +53,3 @@ data class Account(
         }
     }
 }
-
-/** A withdraw or transfer asked for more than the account has available. */
-class InsufficientFundsException(val accountId: AccountId) :
-    RuntimeException("Account ${accountId.value} has insufficient funds")
-
-/**
- * Zero or negative deposit/withdraw amount. Without this, a negative
- * withdraw would pass the sufficient-funds check (`amount > balance` is
- * false for a negative amount) and behave like an unlimited deposit —
- * exactly the kind of "invalid value not handled" that leaves the state
- * inconsistent.
- */
-class InvalidAmountException(val amount: Int) :
-    RuntimeException("Amount must be positive, got $amount")

@@ -1,14 +1,14 @@
 package com.ebanx.ledger.http
 
-import com.ebanx.ledger.application.AccountNotFoundException
 import com.ebanx.ledger.application.DepositUseCase
 import com.ebanx.ledger.application.GetBalanceUseCase
 import com.ebanx.ledger.application.ResetUseCase
 import com.ebanx.ledger.application.TransferUseCase
 import com.ebanx.ledger.application.WithdrawUseCase
 import com.ebanx.ledger.domain.AccountId
-import com.ebanx.ledger.domain.InsufficientFundsException
-import com.ebanx.ledger.domain.InvalidAmountException
+import com.ebanx.ledger.exceptions.AccountNotFoundException
+import com.ebanx.ledger.exceptions.InsufficientFundsException
+import com.ebanx.ledger.exceptions.InvalidAmountException
 import com.ebanx.ledger.infrastructure.InMemoryAccountRepository
 import com.ebanx.ledger.infrastructure.AccountRepository
 import io.ktor.http.ContentType

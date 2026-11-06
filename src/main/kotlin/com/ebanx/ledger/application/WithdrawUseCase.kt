@@ -2,6 +2,7 @@ package com.ebanx.ledger.application
 
 import com.ebanx.ledger.domain.Account
 import com.ebanx.ledger.domain.AccountId
+import com.ebanx.ledger.exceptions.AccountNotFoundException
 import com.ebanx.ledger.infrastructure.AccountRepository
 
 /**

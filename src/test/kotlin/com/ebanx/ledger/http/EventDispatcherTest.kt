@@ -1,11 +1,11 @@
 package com.ebanx.ledger.http
 
-import com.ebanx.ledger.application.AccountNotFoundException
 import com.ebanx.ledger.application.DepositUseCase
 import com.ebanx.ledger.application.GetBalanceUseCase
 import com.ebanx.ledger.application.ResetUseCase
 import com.ebanx.ledger.application.TransferUseCase
 import com.ebanx.ledger.application.WithdrawUseCase
+import com.ebanx.ledger.exceptions.AccountNotFoundException
 import com.ebanx.ledger.infrastructure.InMemoryAccountRepository
 import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.TestFactory

@@ -1,7 +1,8 @@
 package com.ebanx.ledger.application
 
 import com.ebanx.ledger.domain.AccountId
-import com.ebanx.ledger.domain.InsufficientFundsException
+import com.ebanx.ledger.exceptions.AccountNotFoundException
+import com.ebanx.ledger.exceptions.InsufficientFundsException
 import com.ebanx.ledger.infrastructure.InMemoryAccountRepository
 import kotlin.test.Test
 import kotlin.test.assertEquals
