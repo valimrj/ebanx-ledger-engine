@@ -13,12 +13,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
-/**
- * EventDispatcher is the one place that decides, from the `type` received
- * in the JSON, which use case to call. I isolate that decision here,
- * outside the Ktor route, to keep the HTTP handler's cyclomatic complexity
- * low - it only parses and delegates.
- */
 class EventDispatcherTest {
 
     private val repository = InMemoryAccountRepository()
@@ -65,12 +59,6 @@ class EventDispatcherTest {
         )
     }
 
-    /**
-     * These cases are independent of each other - each one opens its own
-     * in-memory repository from scratch - so `DynamicTest` fits well here:
-     * the table below documents by itself which deposit amounts I cover,
-     * and a new amount is just a new row.
-     */
     @TestFactory
     fun `a deposit into a new account always opens it with a balance equal to the deposited amount`(): List<DynamicTest> {
         val amounts = listOf(1, 10, 100, 999)

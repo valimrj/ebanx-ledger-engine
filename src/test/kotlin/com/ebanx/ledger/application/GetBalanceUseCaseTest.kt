@@ -23,12 +23,6 @@ class GetBalanceUseCaseTest {
         assertEquals(20, getBalanceUseCase.execute(AccountId("100"))?.balance)
     }
 
-    /**
-     * A conceptual point I need to prove, not just claim: GET cannot have
-     * a side effect. I call the query several times and confirm the
-     * balance never changes - if `execute` ever called `repository.save`
-     * by mistake, this test would break.
-     */
     @Test
     fun `I query the balance several times and it never changes just by querying`() {
         DepositUseCase(repository).execute(AccountId("100"), amount = 20)

@@ -8,11 +8,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
-/**
- * I test the `AccountRepository` port through the in-memory implementation -
- * it's the only implementation that exists right now, so there's no reason
- * to duplicate the tests on a separate fake.
- */
 class InMemoryAccountRepositoryTest {
 
     @Test
@@ -41,26 +36,12 @@ class InMemoryAccountRepositoryTest {
         assertNull(repository.findById(AccountId("100")))
     }
 
-    /**
-     * This is the proof that read-decide-write is atomic, not just
-     * "protected by ConcurrentHashMap". If `update` did a findById + save
-     * as two separate operations, 200 threads concurrently adding 1 would
-     * lose increments (lost update) and the final result would be less
-     * than 200 - non-deterministically, which would make this test flaky
-     * for exactly the right reason.
-     */
     @Test
     fun `200 concurrent updates on the same account lose no increment`() {
         val repository: AccountRepository = InMemoryAccountRepository()
         repository.update(AccountId("100")) { Account(AccountId("100"), balance = 0) }
 
         val threadCount = 200
-        // Pool with one thread per task on purpose: all of them need to be
-        // able to wait at the barrier at the same time. A pool smaller
-        // than threadCount deadlocks (the queued tasks never get to
-        // decrement readyToStart, which the main thread waits to reach
-        // zero before releasing startSignal) - I saw this deadlock in the
-        // first version of this test.
         val executor = Executors.newFixedThreadPool(threadCount)
         val readyToStart = CountDownLatch(threadCount)
         val startSignal = CountDownLatch(1)
@@ -76,18 +57,13 @@ class InMemoryAccountRepositoryTest {
         }
 
         readyToStart.await()
-        startSignal.countDown() // releases all threads at once, maximizing the race
+        startSignal.countDown()
         done.await()
         executor.shutdown()
 
         assertEquals(200, repository.findById(AccountId("100"))?.balance)
     }
 
-    /**
-     * Proves the automatic rollback: if the transformation throws (e.g.
-     * `InsufficientFundsException`), the previous state must not have
-     * been partially overwritten.
-     */
     @Test
     fun `an update that throws does not change the previous state`() {
         val repository: AccountRepository = InMemoryAccountRepository()

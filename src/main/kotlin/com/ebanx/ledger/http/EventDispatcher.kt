@@ -5,28 +5,20 @@ import com.ebanx.ledger.application.TransferUseCase
 import com.ebanx.ledger.application.WithdrawUseCase
 import com.ebanx.ledger.domain.Account
 import com.ebanx.ledger.domain.AccountId
+import com.ebanx.ledger.http.EventType.DEPOSIT
+import com.ebanx.ledger.http.EventType.TRANSFER
+import com.ebanx.ledger.http.EventType.WITHDRAW
 
-/**
- * Single reason to change: translating an `EventRequest` into the right
- * use case and returning the response shape the assignment expects. It
- * lives in the http package because EventRequest/EventResponse are wire
- * formats, not domain concepts.
- */
 class EventDispatcher(
     private val depositUseCase: DepositUseCase,
     private val withdrawUseCase: WithdrawUseCase,
     private val transferUseCase: TransferUseCase,
 ) {
 
-    // `request.type` is `EventType`, a closed enum, so this `when` is
-    // exhaustive without an `else` branch - the compiler guarantees every
-    // event kind is handled, and an unknown `type` in the JSON now fails
-    // at deserialization, before dispatch is even called, instead of
-    // needing a speculative "unknown type" branch here.
     fun dispatch(request: EventRequest): EventResponse = when (request.type) {
-        EventType.DEPOSIT -> depositResponse(request)
-        EventType.WITHDRAW -> withdrawResponse(request)
-        EventType.TRANSFER -> transferResponse(request)
+        DEPOSIT -> depositResponse(request)
+        WITHDRAW -> withdrawResponse(request)
+        TRANSFER -> transferResponse(request)
     }
 
     private fun depositResponse(request: EventRequest): EventResponse {
@@ -48,12 +40,6 @@ class EventDispatcher(
         return EventResponse(origin = result.origin.toView(), destination = result.destination.toView())
     }
 
-    // `fieldName` here is just a label for the error message, not a
-    // business value with a closed set of options like `EventType` - the
-    // actual values of `origin`/`destination` are arbitrary account ids,
-    // so there's nothing to turn into an enum. A missing required field
-    // is also outside the assignment's examples; IllegalArgumentException
-    // is enough.
     private fun requireField(value: String?, fieldName: String): String =
         value ?: throw IllegalArgumentException("Missing field: $fieldName")
 }

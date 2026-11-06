@@ -6,10 +6,6 @@ import io.ktor.server.testing.testApplication
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-/**
- * Smoke test (story 1): I confirm that Ktor's integration test harness
- * boots the application end to end, before I write any business route.
- */
 class ApplicationTest {
 
     @Test
