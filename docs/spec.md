@@ -1,11 +1,12 @@
 # Especificação — EBANX Ledger Engine
 
 > Documento vivo, no formato SDD (Spec-Driven Development): descreve o
-> que o sistema precisa fazer e, na seção 6, por que fiz as escolhas de
-> arquitetura que fiz. Regras de negócio ligadas a endpoints e
-> consistência sob concorrência estão no [`AGENTS.md`](../AGENTS.md);
-> instruções de build/run estão no [`README.md`](../README.md). Este
-> arquivo nasceu do meu `PLAN.md` original, reestruturado como spec.
+> que o sistema precisa fazer (requisitos funcionais e não-funcionais,
+> endpoints, consistência sob concorrência) e, na seção 6, por que fiz
+> as escolhas de arquitetura que fiz. Regra de comportamento pra quem
+> trabalha no repo está no [`AGENTS.md`](../AGENTS.md); instruções de
+> build/run estão no [`README.md`](../README.md). Este arquivo nasceu
+> do meu `PLAN.md` original, reestruturado como spec.
 
 ## 1. Contexto
 
@@ -23,6 +24,14 @@ Expor uma API que:
 - seja simples o bastante pra qualquer pessoa entender em poucos minutos.
 
 ## 3. Requisitos funcionais
+
+### Endpoints
+
+| Método | Rota | Descrição |
+|---|---|---|
+| `POST` | `/reset` | Limpa todo o estado |
+| `GET` | `/balance?account_id=:id` | Saldo da conta (texto plano); `404 0` se não existir |
+| `POST` | `/event` | `{"type": "deposit"\|"withdraw"\|"transfer", ...}` |
 
 Escrevo os cenários no formato Dado/Quando/Então porque é o que guiou
 meus testes de integração (`EventScenariosTest`) — cada cenário abaixo
@@ -94,6 +103,10 @@ Então a resposta é 400
 E o corpo é o texto "0"
 E o saldo da conta "400" continua 10 (não houve alteração parcial)
 ```
+RF-06/07/08 valem igual pra `transfer` (que reusa o saque na conta de
+origem). A invariante de saldo suficiente vive em `Account.withdraw`,
+nunca como validação de borda na rota — é regra de domínio, não
+checagem de HTTP.
 
 ### RF-09 — Transferir de uma conta existente pra uma conta nova ou existente
 ```
@@ -125,7 +138,9 @@ E nenhuma conta envolvida tem o saldo alterado
 Esse requisito não está nos exemplos literais do enunciado, mas o
 checklist de avaliação da EBANX cita "valores inválidos não tratados"
 como um bug comum a evitar — então eu tratei como requisito funcional,
-não como cenário extra.
+não como cenário extra. Sem essa checagem, um saque negativo passaria
+pela validação de saldo (`amount > balance` é falso pra um valor
+negativo) e se comportaria como um depósito sem limite.
 
 ## 4. Requisitos não-funcionais
 
@@ -133,7 +148,15 @@ não como cenário extra.
   concorrentes na mesma conta nunca podem resultar em saldo incorreto
   (lost update) nem em duas operações que deveriam ser mutuamente
   exclusivas passando as duas (ex.: dois saques que juntos excedem o
-  saldo). Validado por teste real de concorrência (200 threads).
+  saldo). Garantido por `AccountRepository.update(id, mutate)`, que lê,
+  transforma e grava como uma única operação atômica (via
+  `ConcurrentHashMap.compute`) — nunca como um `findById` seguido de um
+  `save` separado, que deixaria essa janela aberta. Validado por teste
+  real de concorrência (200 threads depositando 1 ao mesmo tempo; saldo
+  final tem que ser 200, determinístico). Trade-off assumido em
+  `transfer`: cada perna (`withdraw` + `deposit`) é atômica
+  isoladamente, mas as duas pernas juntas não formam uma transação
+  atômica única (ver seção 5, "Fora de escopo").
 - **RNF-02 — Sem efeito colateral em leitura.** `GET /balance` nunca
   altera estado, chamado uma vez ou cem vezes.
 - **RNF-03 — Simplicidade.** Nenhuma dependência, padrão de design ou
@@ -156,10 +179,9 @@ antecipar cenário fora da especificação:
   desacoplamento de serviço nesse problema.
 - Autenticação/autorização — o enunciado não define usuários nem
   permissões.
-- Transação atômica cross-conta em `transfer` (ver detalhe no
-  `AGENTS.md`, seção "Consistência sob concorrência") — cada perna é
-  atômica isoladamente, a operação completa não é uma transação
-  distribuída.
+- Transação atômica cross-conta em `transfer` (ver RNF-01) — cada
+  perna é atômica isoladamente, a operação completa não é uma
+  transação distribuída.
 - Paginação, múltiplas moedas, juros, taxas — nenhum desses aparece no
   enunciado.
 
@@ -255,9 +277,7 @@ verifica automaticamente.
 ### 6.3 Outras decisões
 
 - `AccountRepository.update(id, mutate)` como única forma de escrever
-  estado — ler, decidir e gravar como uma operação atômica (ver
-  AGENTS.md, seção "Consistência sob concorrência", pros detalhes e
-  pro teste que comprova isso).
+  estado — ver RNF-01 pro detalhe e pro teste que comprova isso.
 - Testes de arquitetura (Konsist) em vez de só disciplina de equipe.
 
 ## 7. Critérios de aceite / Definition of Done

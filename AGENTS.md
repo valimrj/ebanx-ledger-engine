@@ -5,12 +5,12 @@ pedido explícito da pessoa vence sobre qualquer regra aqui, mas avise
 antes: diga contra qual regra está indo e por quê.
 
 **Contexto do projeto**: take-home "Ledger Engine" da EBANX — API de
-saldo e eventos (deposit/withdraw/transfer), em memória, simples. Specs
-em [`docs/spec.md`](./docs/spec.md); o porquê da arquitetura escolhida
-e as convenções específicas dela (camadas, onde cada coisa mora) também
-estão no `docs/spec.md`, seção 6; `README.md` só tem instrução de
-build/run. As regras de negócio por endpoint e a garantia de
-consistência sob concorrência estão abaixo.
+saldo e eventos (deposit/withdraw/transfer), em memória, simples. Tudo
+que é específico do domínio — requisitos funcionais e não-funcionais,
+regra de negócio por endpoint, consistência sob concorrência, porquê
+da arquitetura escolhida — está em [`docs/spec.md`](./docs/spec.md).
+`README.md` só tem instrução de build/run. Este arquivo tem só regra
+de comportamento pra quem (humano ou IA) trabalha no repo.
 
 ## Princípios
 
@@ -66,35 +66,6 @@ consistência sob concorrência estão abaixo.
   um commit pequeno e testável.
 - CI roda `./gradlew test` em todo push/PR; nada é "pronto" sem CI
   verde.
-
-## Endpoints
-
-| Método | Rota | Descrição |
-|---|---|---|
-| `POST` | `/reset` | Limpa todo o estado |
-| `GET` | `/balance?account_id=:id` | Saldo da conta (texto plano); `404 0` se não existir |
-| `POST` | `/event` | `{"type": "deposit"\|"withdraw"\|"transfer", ...}` |
-
-Regra de negócio pra `withdraw` e `transfer` (a segunda reusa a
-primeira): a conta de origem precisa existir (`404` se não existir) e
-precisa ter saldo suficiente (`400` se não tiver — essa invariante vive
-em `Account.withdraw`, nunca como validação de borda na rota). Valor de
-depósito/saque zero ou negativo é rejeitado com `400` — sem essa
-checagem, um saque negativo passaria pela validação de saldo e se
-comportaria como um depósito sem limite.
-
-## Consistência sob concorrência
-
-`AccountRepository.update(id, mutate)` lê, transforma e grava como uma
-única operação atômica (via `ConcurrentHashMap.compute`) — nunca como
-um `findById` seguido de um `save` separado, que deixaria uma janela
-pra duas requisições concorrentes na mesma conta perderem uma
-atualização ou as duas passarem um saque que deveria falhar. Há um
-teste real provando isso (200 threads depositando 1 ao mesmo tempo;
-saldo final tem que ser 200, determinístico). Trade-off assumido em
-`transfer`: cada perna (`withdraw` + `deposit`) é atômica
-isoladamente, mas as duas pernas juntas não formam uma transação
-atômica única — ver seção "Fora de escopo" do `docs/spec.md`.
 
 ## Antes de qualquer mudança
 
