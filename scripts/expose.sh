@@ -1,8 +1,16 @@
 #!/usr/bin/env bash
-# Sobe a aplicação, abre um túnel ngrok em :8080 e imprime a URL pública
-# pronta pra colar em https://ipkiss.ebanx.ninja/. Ctrl+C encerra os dois.
-# Requer o ngrok instalado e autenticado (ver README, seção "Como testar
-# com o ipkiss da EBANX").
+# Sobe a aplicação, abre um túnel ngrok em :8080, roda contra a URL
+# pública a mesma sequência de cenários que o ipkiss verifica (reset,
+# consulta de saldo, deposit, withdraw, transfer, valor inválido) e só
+# então imprime a URL pronta pra colar em https://ipkiss.ebanx.ninja/.
+#
+# O ipkiss em si não tem API documentada nem formulário sem CSRF, então
+# colar a URL e clicar em "Run tests!" lá continua manual — o que esse
+# script garante é que, antes disso, a aplicação já passou no mesmo
+# roteiro pela internet real, não só localmente.
+#
+# Ctrl+C encerra a aplicação e o túnel. Requer o ngrok instalado e
+# autenticado (ver README, seção "Como testar com o ipkiss da EBANX").
 set -euo pipefail
 
 APP_LOG=$(mktemp)
@@ -44,8 +52,45 @@ if [ -z "$URL" ]; then
   exit 1
 fi
 
+echo "Túnel aberto. Rodando o roteiro de cenários contra $URL..."
 echo
-echo "URL pública (cole em https://ipkiss.ebanx.ninja/):"
+
+FAILED=0
+
+check() {
+  local desc="$1" expected="$2"
+  shift 2
+  local out status
+  out=$(curl -s -w '\n%{http_code}' "$@")
+  status=$(tail -n1 <<<"$out")
+  if [ "$status" = "$expected" ]; then
+    echo "  OK   $desc"
+  else
+    local body
+    body=$(sed '$d' <<<"$out")
+    echo "  FAIL $desc (esperava $expected, veio $status; corpo: $body)"
+    FAILED=1
+  fi
+}
+
+check "reset limpa o estado"                200 -X POST "$URL/reset"
+check "saldo de conta inexistente"          404 "$URL/balance?account_id=smoke"
+check "deposit cria a conta"                201 -X POST "$URL/event" -H 'Content-Type: application/json' -d '{"type":"deposit","destination":"smoke","amount":10}'
+check "saldo depois do deposit"             200 "$URL/balance?account_id=smoke"
+check "withdraw com saldo suficiente"       201 -X POST "$URL/event" -H 'Content-Type: application/json' -d '{"type":"withdraw","origin":"smoke","amount":4}'
+check "withdraw maior que o saldo"          400 -X POST "$URL/event" -H 'Content-Type: application/json' -d '{"type":"withdraw","origin":"smoke","amount":999}'
+check "transfer entre contas"               201 -X POST "$URL/event" -H 'Content-Type: application/json' -d '{"type":"transfer","origin":"smoke","destination":"smoke-2","amount":6}'
+check "amount zero ou negativo é rejeitado" 400 -X POST "$URL/event" -H 'Content-Type: application/json' -d '{"type":"deposit","destination":"smoke","amount":-1}'
+
+echo
+if [ "$FAILED" = "1" ]; then
+  echo "Algum cenário falhou pela internet — reveja antes de colar no ipkiss."
+else
+  echo "Todos os cenários passaram pela internet real, não só localmente."
+fi
+
+echo
+echo "URL pública (cole em https://ipkiss.ebanx.ninja/ e clique em \"Run tests!\"):"
 echo "  $URL"
 echo
 echo "Ctrl+C encerra a aplicação e o túnel."

@@ -33,7 +33,8 @@ não estão aqui — ver [`docs/spec.md`](./docs/spec.md).
 make run      # ./gradlew run
 make test     # ./gradlew test
 make build    # ./gradlew build
-make expose   # sobe a aplicação, abre um túnel ngrok e imprime a URL pública
+make expose   # sobe a aplicação, abre o túnel ngrok, roda o roteiro de
+              # cenários contra a URL pública e imprime o resultado + a URL
 ```
 
 ## Como testar com o ipkiss da EBANX
@@ -56,10 +57,15 @@ internet. Uso o [ngrok](https://ngrok.com/) pra isso:
    Se ele reaproveita estado entre execuções, chamo `POST /reset` antes
    pra garantir estado limpo.
 
-`make expose` faz os passos 1 e 3 por mim (sobe a aplicação, abre o
-túnel, espera os dois responderem e imprime a URL pública pronta pra
-colar no ipkiss) — só preciso ter feito o passo 2 (instalar/autenticar o
-ngrok) uma vez antes. `Ctrl+C` encerra os dois.
+`make expose` faz os passos 1, 3 e 4 por mim: sobe a aplicação, abre o
+túnel, roda contra a URL pública a mesma sequência de cenários que o
+ipkiss verifica (reset, consulta de saldo, deposit, withdraw, transfer,
+valor inválido) e só então imprime o resultado e a URL — só preciso ter
+feito o passo 2 (instalar/autenticar o ngrok) uma vez antes. O passo 5
+(colar a URL no ipkiss e clicar em "Run tests!") continua manual: o
+ipkiss não tem API documentada nem formulário sem proteção CSRF, então
+não dá pra automatizar esse clique de forma confiável. `Ctrl+C` encerra
+a aplicação e o túnel.
 
 ## CI
 
