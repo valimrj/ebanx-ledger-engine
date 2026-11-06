@@ -41,31 +41,31 @@ make expose   # sobe a aplicação, abre o túnel ngrok, roda o roteiro de
 
 O [ipkiss](https://ipkiss.ebanx.ninja/) é a ferramenta da EBANX pra testar
 a API de fora, então preciso expor minha porta local (`8080`) pra
-internet. Uso o [ngrok](https://ngrok.com/) pra isso:
+internet. Uso o [ngrok](https://ngrok.com/) pra isso. Passo a passo:
 
-1. Suba a aplicação: `./gradlew run` (ou `make run`).
-2. Instale o ngrok (`brew install ngrok` no Mac), crie uma conta grátis
-   em ngrok.com, copie seu authtoken no dashboard e rode uma vez:
-   `ngrok config add-authtoken <SEU_TOKEN>`.
-3. Com a aplicação no ar, em outro terminal: `ngrok http 8080`. O ngrok
-   imprime uma URL pública (`https://....ngrok-free.app`) que redireciona
-   pra `localhost:8080`. Deixe esse terminal aberto — fechar encerra o
-   túnel.
-4. Teste a URL antes de usar no ipkiss: `curl <URL>/balance?account_id=1`
-   deve responder `404` com corpo `0`.
-5. Cole essa URL no [ipkiss](https://ipkiss.ebanx.ninja/) e rode o teste.
-   Se ele reaproveita estado entre execuções, chamo `POST /reset` antes
-   pra garantir estado limpo.
+1. **Garanta o ngrok instalado e autenticado** (só uma vez por máquina):
+   `brew install ngrok` no Mac, crie uma conta grátis em ngrok.com,
+   copie o authtoken no dashboard e rode `ngrok config add-authtoken
+   <SEU_TOKEN>`.
+2. **Rode o botão único**: `make expose`. Ele sobe a aplicação, abre o
+   túnel ngrok, roda a mesma sequência de cenários que o ipkiss verifica
+   (reset, consulta de saldo, deposit, withdraw, transfer, valor
+   inválido) contra a URL pública, e imprime o resultado seguido da URL.
+   Deixe esse terminal aberto.
+3. **Confira o resultado impresso.** Se todos os cenários vierem `OK`, a
+   aplicação já foi validada pela internet real, não só localmente —
+   pode confiar na URL impressa em seguida.
+4. **Cole a URL no ipkiss**: copie a URL pública impressa (algo como
+   `https://xxxx.ngrok-free.app`), abra o
+   [ipkiss](https://ipkiss.ebanx.ninja/), cole lá e clique em "Run
+   tests!". Esse clique é manual — o ipkiss não tem API documentada nem
+   formulário sem proteção CSRF, então não dá pra automatizar com
+   segurança.
+5. **Encerre quando terminar**: volte no terminal do `make expose` e
+   aperte `Ctrl+C`. Isso derruba a aplicação e o túnel ngrok juntos.
 
-`make expose` faz os passos 1, 3 e 4 por mim: sobe a aplicação, abre o
-túnel, roda contra a URL pública a mesma sequência de cenários que o
-ipkiss verifica (reset, consulta de saldo, deposit, withdraw, transfer,
-valor inválido) e só então imprime o resultado e a URL — só preciso ter
-feito o passo 2 (instalar/autenticar o ngrok) uma vez antes. O passo 5
-(colar a URL no ipkiss e clicar em "Run tests!") continua manual: o
-ipkiss não tem API documentada nem formulário sem proteção CSRF, então
-não dá pra automatizar esse clique de forma confiável. `Ctrl+C` encerra
-a aplicação e o túnel.
+Pra rodar os passos manualmente, sem o atalho: `./gradlew run` (ou
+`make run`), depois `ngrok http 8080` em outro terminal.
 
 ## CI
 
