@@ -20,6 +20,18 @@ em [`docs/spec.md`](./docs/spec.md); decisões técnicas no
 - **Hexagonal.** `domain`/`application` nunca importam `io.ktor` nem
   implementação concreta de repositório — garantido por
   `LayeringTest`, não por convenção.
+- **Complexidade ciclomática baixa.** Evite abstração só pra reduzir
+  linhas; prefira funções pequenas e poucas decisões aninhadas.
+- **Sem abstração prematura.** Não crie interface, classe base ou
+  generalização pra um caso de uso que ainda não existe.
+- **DRY não é absoluto.** Duplicação pequena e isolada é mais barata
+  que uma abstração errada só pra evitar repetir duas linhas.
+- **SOLID quando fizer sentido, sem over-engineering.** Use os
+  princípios pra guiar, não como checklist a cumprir à força.
+- **Clean code em nomes.** Nome de variável e método deve deixar claro
+  o que a coisa é/faz, sem precisar de comentário pra explicar.
+- **Não force um design pattern no problema.** Deixe o padrão emergir
+  da necessidade real, não o contrário.
 - **Idioma**: documentação em português; código, comentários, KDoc e
   nomes de teste em inglês.
 - **Voz**: README e `docs/spec.md` em primeira pessoa (descrevem
