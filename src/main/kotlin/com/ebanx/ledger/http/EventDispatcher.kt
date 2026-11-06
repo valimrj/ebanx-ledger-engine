@@ -18,16 +18,15 @@ class EventDispatcher(
     private val transferUseCase: TransferUseCase,
 ) {
 
+    // `request.type` is `EventType`, a closed enum, so this `when` is
+    // exhaustive without an `else` branch — the compiler guarantees every
+    // event kind is handled, and an unknown `type` in the JSON now fails
+    // at deserialization, before dispatch is even called, instead of
+    // needing a speculative "unknown type" branch here.
     fun dispatch(request: EventRequest): EventResponse = when (request.type) {
-        "deposit" -> depositResponse(request)
-        "withdraw" -> withdrawResponse(request)
-        "transfer" -> transferResponse(request)
-        // The assignment only defines these three types; I don't create a
-        // domain exception for a case it doesn't describe — that would be
-        // anticipating a scenario outside the spec. `IllegalArgumentException`
-        // already says what it needs to say: the input is outside what the
-        // API accepts.
-        else -> throw IllegalArgumentException("Unknown event type: ${request.type}")
+        EventType.DEPOSIT -> depositResponse(request)
+        EventType.WITHDRAW -> withdrawResponse(request)
+        EventType.TRANSFER -> transferResponse(request)
     }
 
     private fun depositResponse(request: EventRequest): EventResponse {
@@ -49,8 +48,12 @@ class EventDispatcher(
         return EventResponse(origin = result.origin.toView(), destination = result.destination.toView())
     }
 
-    // Same reasoning: a required field missing for the event type is also
-    // outside the assignment's examples. IllegalArgumentException is enough.
+    // `fieldName` here is just a label for the error message, not a
+    // business value with a closed set of options like `EventType` — the
+    // actual values of `origin`/`destination` are arbitrary account ids,
+    // so there's nothing to turn into an enum. A missing required field
+    // is also outside the assignment's examples; IllegalArgumentException
+    // is enough.
     private fun requireField(value: String?, fieldName: String): String =
         value ?: throw IllegalArgumentException("Missing field: $fieldName")
 }

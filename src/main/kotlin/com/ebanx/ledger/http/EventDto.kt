@@ -1,11 +1,30 @@
 package com.ebanx.ledger.http
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-/** Body received on POST /event, exactly as the assignment defines it. */
+/**
+ * The three event kinds the assignment defines — a closed set, so an enum
+ * fits better here than a bare `String` compared against magic literals.
+ * `@SerialName` keeps the wire format (lowercase, as the assignment's
+ * JSON examples use it) independent from the Kotlin naming convention
+ * for enum entries.
+ */
+@Serializable
+enum class EventType {
+    @SerialName("deposit") DEPOSIT,
+    @SerialName("withdraw") WITHDRAW,
+    @SerialName("transfer") TRANSFER,
+}
+
+/**
+ * Body received on POST /event, exactly as the assignment defines it.
+ * An unknown `type` now fails right at deserialization, before
+ * `EventDispatcher` is even called.
+ */
 @Serializable
 data class EventRequest(
-    val type: String,
+    val type: EventType,
     val destination: String? = null,
     val origin: String? = null,
     val amount: Int,

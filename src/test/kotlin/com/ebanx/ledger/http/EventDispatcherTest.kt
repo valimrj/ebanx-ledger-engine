@@ -30,16 +30,16 @@ class EventDispatcherTest {
 
     @Test
     fun `a deposit event returns only destination`() {
-        val response = dispatcher.dispatch(EventRequest(type = "deposit", destination = "100", amount = 10))
+        val response = dispatcher.dispatch(EventRequest(type = EventType.DEPOSIT, destination = "100", amount = 10))
 
         assertEquals(EventResponse(destination = AccountView("100", 10)), response)
     }
 
     @Test
     fun `a withdraw event returns only origin`() {
-        dispatcher.dispatch(EventRequest(type = "deposit", destination = "100", amount = 20))
+        dispatcher.dispatch(EventRequest(type = EventType.DEPOSIT, destination = "100", amount = 20))
 
-        val response = dispatcher.dispatch(EventRequest(type = "withdraw", origin = "100", amount = 5))
+        val response = dispatcher.dispatch(EventRequest(type = EventType.WITHDRAW, origin = "100", amount = 5))
 
         assertEquals(EventResponse(origin = AccountView("100", 15)), response)
     }
@@ -47,16 +47,16 @@ class EventDispatcherTest {
     @Test
     fun `a withdraw event on a non-existing account propagates AccountNotFoundException`() {
         assertFailsWith<AccountNotFoundException> {
-            dispatcher.dispatch(EventRequest(type = "withdraw", origin = "200", amount = 10))
+            dispatcher.dispatch(EventRequest(type = EventType.WITHDRAW, origin = "200", amount = 10))
         }
     }
 
     @Test
     fun `a transfer event returns origin and destination`() {
-        dispatcher.dispatch(EventRequest(type = "deposit", destination = "100", amount = 15))
+        dispatcher.dispatch(EventRequest(type = EventType.DEPOSIT, destination = "100", amount = 15))
 
         val response = dispatcher.dispatch(
-            EventRequest(type = "transfer", origin = "100", destination = "300", amount = 15),
+            EventRequest(type = EventType.TRANSFER, origin = "100", destination = "300", amount = 15),
         )
 
         assertEquals(
@@ -87,7 +87,7 @@ class EventDispatcherTest {
                 )
 
                 val response = isolatedDispatcher.dispatch(
-                    EventRequest(type = "deposit", destination = "100", amount = amount),
+                    EventRequest(type = EventType.DEPOSIT, destination = "100", amount = amount),
                 )
 
                 assertEquals(EventResponse(destination = AccountView("100", amount)), response)
