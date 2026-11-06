@@ -32,6 +32,9 @@ em [`docs/spec.md`](./docs/spec.md); decisões técnicas no
   o que a coisa é/faz, sem precisar de comentário pra explicar.
 - **Não force um design pattern no problema.** Deixe o padrão emergir
   da necessidade real, não o contrário.
+- **Sem magic number nem string solta.** Número ou string repetido ou
+  sem significado óbvio no contexto ganha uma constante nomeada (ex.:
+  `ERROR_RESPONSE_BODY` em vez de `"0"` espalhado em três lugares).
 - **Idioma**: documentação em português; código, comentários, KDoc e
   nomes de teste em inglês.
 - **Voz**: README e `docs/spec.md` em primeira pessoa (descrevem

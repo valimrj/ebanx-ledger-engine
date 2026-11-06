@@ -36,6 +36,13 @@ import io.ktor.server.routing.routing
  * in EventDispatcher; error-to-status-code mapping is centralized here in
  * StatusPages, not repeated route by route.
  */
+
+// The assignment's examples always show "0" as the plain-text body for
+// every error response (404 and 400 alike), regardless of the real
+// reason. Naming it instead of repeating the bare literal three times
+// below makes that choice explicit, not something to guess at each call site.
+private const val ERROR_RESPONSE_BODY = "0"
+
 fun Application.businessRouting(repository: AccountRepository = InMemoryAccountRepository()) {
     val depositUseCase = DepositUseCase(repository)
     val withdrawUseCase = WithdrawUseCase(repository)
@@ -46,18 +53,18 @@ fun Application.businessRouting(repository: AccountRepository = InMemoryAccountR
 
     install(StatusPages) {
         exception<AccountNotFoundException> { call, _ ->
-            call.respondText("0", ContentType.Text.Plain, HttpStatusCode.NotFound)
+            call.respondText(ERROR_RESPONSE_BODY, ContentType.Text.Plain, HttpStatusCode.NotFound)
         }
         // The assignment doesn't cover this case in its examples, so the
         // status choice (400, not 404 — the account exists, it just has no
         // funds) is mine, not dictated by the spec.
         exception<InsufficientFundsException> { call, _ ->
-            call.respondText("0", ContentType.Text.Plain, HttpStatusCode.BadRequest)
+            call.respondText(ERROR_RESPONSE_BODY, ContentType.Text.Plain, HttpStatusCode.BadRequest)
         }
         // Same reasoning: a zero/negative amount is also invalid input,
         // not a 404 nor insufficient funds.
         exception<InvalidAmountException> { call, _ ->
-            call.respondText("0", ContentType.Text.Plain, HttpStatusCode.BadRequest)
+            call.respondText(ERROR_RESPONSE_BODY, ContentType.Text.Plain, HttpStatusCode.BadRequest)
         }
     }
 
