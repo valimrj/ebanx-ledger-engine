@@ -8,7 +8,7 @@ data class TransferResult(val origin: Account, val destination: Account)
 
 /**
  * Single reason to change: the transfer rule. I reuse Withdraw and Deposit
- * through composition instead of duplicating each one's logic — if the
+ * through composition instead of duplicating each one's logic - if the
  * origin account doesn't exist, the 404 already comes from inside
  * WithdrawUseCase, I just let the exception propagate.
  */

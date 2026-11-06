@@ -17,7 +17,7 @@ import kotlin.test.assertFailsWith
  * EventDispatcher is the one place that decides, from the `type` received
  * in the JSON, which use case to call. I isolate that decision here,
  * outside the Ktor route, to keep the HTTP handler's cyclomatic complexity
- * low — it only parses and delegates.
+ * low - it only parses and delegates.
  */
 class EventDispatcherTest {
 
@@ -66,8 +66,8 @@ class EventDispatcherTest {
     }
 
     /**
-     * These cases are independent of each other — each one opens its own
-     * in-memory repository from scratch — so `DynamicTest` fits well here:
+     * These cases are independent of each other - each one opens its own
+     * in-memory repository from scratch - so `DynamicTest` fits well here:
      * the table below documents by itself which deposit amounts I cover,
      * and a new amount is just a new row.
      */

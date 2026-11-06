@@ -1,7 +1,7 @@
 # EBANX Ledger Engine
 
 Minha solução pro take-home assignment da EBANX: uma API de saldo/eventos
-(deposit, withdraw, transfer). Fiz sem persistência — tudo em memória,
+(deposit, withdraw, transfer). Fiz sem persistência - tudo em memória,
 como o enunciado pede.
 
 ## Como eu rodo localmente
@@ -25,7 +25,7 @@ enunciado).
 
 Decisões de arquitetura (por que Ktor, por que essa separação em
 camadas) e regras de negócio (endpoints, consistência sob concorrência)
-não estão aqui — ver [`docs/spec.md`](./docs/spec.md).
+não estão aqui - ver [`docs/spec.md`](./docs/spec.md).
 
 ## Atalhos (Makefile)
 
@@ -53,12 +53,12 @@ internet. Uso o [ngrok](https://ngrok.com/) pra isso. Passo a passo:
    inválido) contra a URL pública, e imprime o resultado seguido da URL.
    Deixe esse terminal aberto.
 3. **Confira o resultado impresso.** Se todos os cenários vierem `OK`, a
-   aplicação já foi validada pela internet real, não só localmente —
+   aplicação já foi validada pela internet real, não só localmente -
    pode confiar na URL impressa em seguida.
 4. **Cole a URL no ipkiss**: copie a URL pública impressa (algo como
    `https://xxxx.ngrok-free.app`), abra o
    [ipkiss](https://ipkiss.ebanx.ninja/), cole lá e clique em "Run
-   tests!". Esse clique é manual — o ipkiss não tem API documentada nem
+   tests!". Esse clique é manual - o ipkiss não tem API documentada nem
    formulário sem proteção CSRF, então não dá pra automatizar com
    segurança.
 5. **Encerre quando terminar**: volte no terminal do `make expose` e

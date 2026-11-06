@@ -5,7 +5,7 @@
 # então imprime a URL pronta pra colar em https://ipkiss.ebanx.ninja/.
 #
 # O ipkiss em si não tem API documentada nem formulário sem CSRF, então
-# colar a URL e clicar em "Run tests!" lá continua manual — o que esse
+# colar a URL e clicar em "Run tests!" lá continua manual - o que esse
 # script garante é que, antes disso, a aplicação já passou no mesmo
 # roteiro pela internet real, não só localmente.
 #
@@ -84,7 +84,7 @@ check "amount zero ou negativo é rejeitado" 400 -X POST "$URL/event" -H 'Conten
 
 echo
 if [ "$FAILED" = "1" ]; then
-  echo "Algum cenário falhou pela internet — reveja antes de colar no ipkiss."
+  echo "Algum cenário falhou pela internet - reveja antes de colar no ipkiss."
 else
   echo "Todos os cenários passaram pela internet real, não só localmente."
 fi

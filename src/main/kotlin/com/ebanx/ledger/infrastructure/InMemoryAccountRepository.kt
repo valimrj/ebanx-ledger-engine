@@ -13,7 +13,7 @@ import java.util.concurrent.ConcurrentHashMap
  * concurrent calls for the SAME account are serialized (one waits for the
  * other), never running in parallel reading the same stale balance. That's
  * what makes `withdraw`/`deposit` safe under concurrency without me
- * needing an explicit lock or a database — enough for what the assignment
+ * needing an explicit lock or a database - enough for what the assignment
  * asks for (durability isn't a requirement, consistency is).
  */
 class InMemoryAccountRepository : AccountRepository {

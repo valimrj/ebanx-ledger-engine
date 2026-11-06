@@ -26,7 +26,7 @@ class GetBalanceUseCaseTest {
     /**
      * A conceptual point I need to prove, not just claim: GET cannot have
      * a side effect. I call the query several times and confirm the
-     * balance never changes — if `execute` ever called `repository.save`
+     * balance never changes - if `execute` ever called `repository.save`
      * by mistake, this test would break.
      */
     @Test

@@ -4,7 +4,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
- * The three event kinds the assignment defines — a closed set, so an enum
+ * The three event kinds the assignment defines - a closed set, so an enum
  * fits better here than a bare `String` compared against magic literals.
  * `@SerialName` keeps the wire format (lowercase, as the assignment's
  * JSON examples use it) independent from the Kotlin naming convention

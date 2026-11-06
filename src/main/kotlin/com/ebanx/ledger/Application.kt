@@ -19,7 +19,7 @@ fun main() {
 
 /**
  * Application composition: transport plugins (JSON) and the business
- * routes, which live in `http.businessRouting` — it also installs the
+ * routes, which live in `http.businessRouting` - it also installs the
  * `StatusPages` plugin that maps domain exceptions to HTTP status codes.
  *
  * `explicitNulls = false` makes the serializer omit null fields, because the

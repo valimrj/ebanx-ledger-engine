@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test
  * I simplified the structure by merging the `AccountRepository` port
  * into the `infrastructure` package (it lives in the same file as its
  * single implementation, instead of having a `ports` package just for
- * it) — one less folder to navigate. That has a cost I take on
+ * it) - one less folder to navigate. That has a cost I take on
  * consciously: the layering rule can no longer say "application doesn't
  * import anything from infrastructure", because now `application` needs
  * to import the `AccountRepository` interface, which lives there. In

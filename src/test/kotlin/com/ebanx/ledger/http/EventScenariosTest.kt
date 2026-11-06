@@ -23,7 +23,7 @@ import kotlin.test.assertEquals
  * makes sense after "create account with initial balance"), and all the
  * steps need to run against the same live test server, on the same
  * client. `DynamicTest` assumes cases that are independent of each other
- * — forcing that here would mean recreating the application at every step
+ * - forcing that here would mean recreating the application at every step
  * (losing the state). A sequential test is the right model for an
  * ordered regression suite like this one.
  *
@@ -119,7 +119,7 @@ class EventScenariosTest {
      * EBANX checklist (item 10, "common bugs"): "invalid values not
      * handled" / "inconsistent state after operations". A negative
      * withdraw would pass unharmed through the sufficient-funds check and
-     * behave like a deposit — I prove here, on the real route, that this
+     * behave like a deposit - I prove here, on the real route, that this
      * doesn't happen: the request is rejected with 400 and the balance
      * doesn't move at all.
      */
@@ -141,7 +141,7 @@ class EventScenariosTest {
     /**
      * EBANX checklist's conceptual point: "GET must not have a side
      * effect". I call GET /balance several times on purpose and confirm
-     * the balance is the same every time — on the real route, not just on
+     * the balance is the same every time - on the real route, not just on
      * the isolated use case (that one I already tested in
      * GetBalanceUseCaseTest).
      */

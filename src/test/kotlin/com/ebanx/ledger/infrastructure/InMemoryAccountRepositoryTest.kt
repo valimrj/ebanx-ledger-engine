@@ -9,7 +9,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
 /**
- * I test the `AccountRepository` port through the in-memory implementation —
+ * I test the `AccountRepository` port through the in-memory implementation -
  * it's the only implementation that exists right now, so there's no reason
  * to duplicate the tests on a separate fake.
  */
@@ -46,7 +46,7 @@ class InMemoryAccountRepositoryTest {
      * "protected by ConcurrentHashMap". If `update` did a findById + save
      * as two separate operations, 200 threads concurrently adding 1 would
      * lose increments (lost update) and the final result would be less
-     * than 200 — non-deterministically, which would make this test flaky
+     * than 200 - non-deterministically, which would make this test flaky
      * for exactly the right reason.
      */
     @Test
@@ -59,7 +59,7 @@ class InMemoryAccountRepositoryTest {
         // able to wait at the barrier at the same time. A pool smaller
         // than threadCount deadlocks (the queued tasks never get to
         // decrement readyToStart, which the main thread waits to reach
-        // zero before releasing startSignal) — I saw this deadlock in the
+        // zero before releasing startSignal) - I saw this deadlock in the
         // first version of this test.
         val executor = Executors.newFixedThreadPool(threadCount)
         val readyToStart = CountDownLatch(threadCount)

@@ -1,14 +1,14 @@
-# AGENTS.md — EBANX Ledger Engine
+# AGENTS.md - EBANX Ledger Engine
 
 Regras pra qualquer agente (humano ou IA) que trabalhe neste repo. Um
 pedido explícito da pessoa vence sobre qualquer regra aqui, mas avise
 antes: diga contra qual regra está indo e por quê.
 
-**Contexto do projeto**: take-home "Ledger Engine" da EBANX — API de
+**Contexto do projeto**: take-home "Ledger Engine" da EBANX - API de
 saldo e eventos (deposit/withdraw/transfer), em memória, simples. Tudo
-que é específico do domínio — requisitos funcionais e não-funcionais,
+que é específico do domínio - requisitos funcionais e não-funcionais,
 regra de negócio por endpoint, consistência sob concorrência, porquê
-da arquitetura escolhida — está em [`docs/spec.md`](./docs/spec.md).
+da arquitetura escolhida - está em [`docs/spec.md`](./docs/spec.md).
 `README.md` só tem instrução de build/run. Este arquivo tem só regra
 de comportamento pra quem (humano ou IA) trabalha no repo.
 
@@ -38,7 +38,7 @@ de comportamento pra quem (humano ou IA) trabalha no repo.
 - **Idioma**: documentação em português; código, comentários, KDoc e
   nomes de teste em inglês.
 - **Voz**: README e `docs/spec.md` em primeira pessoa (descrevem
-  trabalho feito); commits também. Este arquivo é regra, não relato —
+  trabalho feito); commits também. Este arquivo é regra, não relato -
   fala em modo diretivo.
 
 ## Nunca faça
@@ -69,7 +69,7 @@ de comportamento pra quem (humano ou IA) trabalha no repo.
 
 ## Antes de qualquer mudança
 
-1. Confira `docs/spec.md` — se o comportamento não está especificado,
+1. Confira `docs/spec.md` - se o comportamento não está especificado,
    pergunte antes de implementar.
 2. Escreva o teste que falha.
 3. Implemente o mínimo pra passar.

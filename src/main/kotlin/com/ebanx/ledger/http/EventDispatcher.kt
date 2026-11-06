@@ -19,7 +19,7 @@ class EventDispatcher(
 ) {
 
     // `request.type` is `EventType`, a closed enum, so this `when` is
-    // exhaustive without an `else` branch — the compiler guarantees every
+    // exhaustive without an `else` branch - the compiler guarantees every
     // event kind is handled, and an unknown `type` in the JSON now fails
     // at deserialization, before dispatch is even called, instead of
     // needing a speculative "unknown type" branch here.
@@ -49,7 +49,7 @@ class EventDispatcher(
     }
 
     // `fieldName` here is just a label for the error message, not a
-    // business value with a closed set of options like `EventType` — the
+    // business value with a closed set of options like `EventType` - the
     // actual values of `origin`/`destination` are arbitrary account ids,
     // so there's nothing to turn into an enum. A missing required field
     // is also outside the assignment's examples; IllegalArgumentException

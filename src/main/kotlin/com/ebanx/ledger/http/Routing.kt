@@ -28,10 +28,10 @@ import io.ktor.server.routing.routing
 /**
  * Dependency wiring and the business routes. It's kept out of
  * `Application.module()` on purpose, so module() stays "install transport
- * plugins" only — this file is "what the API does".
+ * plugins" only - this file is "what the API does".
  *
- * Each handler only does two things — read the request and delegate to
- * the right use case — exactly to keep each route's cyclomatic complexity
+ * Each handler only does two things - read the request and delegate to
+ * the right use case - exactly to keep each route's cyclomatic complexity
  * at 1. The decision of "which use case to call" was already made before,
  * in EventDispatcher; error-to-status-code mapping is centralized here in
  * StatusPages, not repeated route by route.
@@ -56,7 +56,7 @@ fun Application.businessRouting(repository: AccountRepository = InMemoryAccountR
             call.respondText(ERROR_RESPONSE_BODY, ContentType.Text.Plain, HttpStatusCode.NotFound)
         }
         // The assignment doesn't cover this case in its examples, so the
-        // status choice (400, not 404 — the account exists, it just has no
+        // status choice (400, not 404 - the account exists, it just has no
         // funds) is mine, not dictated by the spec.
         exception<InsufficientFundsException> { call, _ ->
             call.respondText(ERROR_RESPONSE_BODY, ContentType.Text.Plain, HttpStatusCode.BadRequest)

@@ -13,12 +13,12 @@ data class AccountId(val value: String)
  * Account is an immutable domain object: every operation returns a new
  * instance instead of mutating the current state. That removes a whole
  * class of shared-state bugs and keeps the methods small, with no extra
- * branching — the only decision `withdraw` makes is the one that protects
+ * branching - the only decision `withdraw` makes is the one that protects
  * the domain invariant: balance never goes negative.
  *
  * That validation lives here, not in the use case, because "balance can't
  * go negative" is a rule about what an Account IS, not an orchestration
- * rule — it applies to a direct withdraw and to transfer (which reuses
+ * rule - it applies to a direct withdraw and to transfer (which reuses
  * withdraw), without me repeating the `if` in two places.
  */
 data class Account(
