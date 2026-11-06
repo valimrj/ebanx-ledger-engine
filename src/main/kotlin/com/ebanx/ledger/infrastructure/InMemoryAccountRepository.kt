@@ -5,16 +5,16 @@ import com.ebanx.ledger.domain.AccountId
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * Implementação em memória da porta `AccountRepository` (mesmo pacote: a
- * única implementação que existe hoje mora junto da interface).
+ * In-memory implementation of the `AccountRepository` port (same package:
+ * the only implementation that exists today lives next to the interface).
  *
- * `update` usa `ConcurrentHashMap.compute`, que o Java garante que executa
- * de forma atômica por chave: nenhuma outra thread vê um estado
- * intermediário, e duas chamadas concorrentes pra a MESMA conta são
- * serializadas (uma espera a outra), nunca correm em paralelo lendo o
- * mesmo saldo antigo. Isso é o que torna `withdraw`/`deposit` seguros sob
- * concorrência sem eu precisar de lock explícito nem de banco — suficiente
- * pro que o enunciado pede (durabilidade não é requisito, consistência é).
+ * `update` uses `ConcurrentHashMap.compute`, which Java guarantees runs
+ * atomically per key: no other thread sees an intermediate state, and two
+ * concurrent calls for the SAME account are serialized (one waits for the
+ * other), never running in parallel reading the same stale balance. That's
+ * what makes `withdraw`/`deposit` safe under concurrency without me
+ * needing an explicit lock or a database — enough for what the assignment
+ * asks for (durability isn't a requirement, consistency is).
  */
 class InMemoryAccountRepository : AccountRepository {
     private val accounts = ConcurrentHashMap<AccountId, Account>()

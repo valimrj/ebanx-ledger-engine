@@ -4,32 +4,34 @@ import com.ebanx.ledger.domain.Account
 import com.ebanx.ledger.domain.AccountId
 
 /**
- * Porta de saída do domínio pro armazenamento de contas. Eu só coloco aqui os
- * três métodos que os casos de uso realmente precisam — nada especulativo.
+ * The domain's outbound port to account storage. I only put here the three
+ * methods the use cases actually need — nothing speculative.
  *
- * Esta é a única abstração que eu crio antes de precisar de uma segunda
- * implementação: o enunciado já avisa que pode pedir mudanças, e trocar o
- * armazenamento em memória por um banco é a mudança mais provável.
+ * This is the only abstraction I create before needing a second
+ * implementation: the assignment already warns that it may ask for
+ * changes, and swapping the in-memory storage for a database is the most
+ * likely one.
  *
- * Eu deixo essa interface no mesmo arquivo/pacote da sua única
- * implementação (`InMemoryAccountRepository`, embaixo) em vez de um pacote
- * `ports` separado — uma pasta a menos pra navegar, já que hoje só existe
- * uma implementação. `application` depende só desta interface, nunca da
- * classe concreta; é essa regra que o `LayeringTest` verifica.
+ * I keep this interface in the same file/package as its single
+ * implementation (`InMemoryAccountRepository`, below) instead of a
+ * separate `ports` package — one less folder to navigate, since today
+ * there's only one implementation. `application` depends only on this
+ * interface, never on the concrete class; that's the rule `LayeringTest`
+ * checks.
  */
 interface AccountRepository {
     fun findById(id: AccountId): Account?
 
     /**
-     * Lê, transforma e grava como UMA operação atômica — não como
-     * `findById` seguido de um `save` separado. Isso importa porque
-     * `withdraw`/`deposit` fazem "ler saldo, decidir, escrever saldo", e
-     * ler-decidir-escrever em dois passos é exatamente onde duas
-     * requisições concorrentes na mesma conta perderiam uma atualização
-     * (lost update) mesmo com uma estrutura de dados thread-safe por
-     * baixo. `mutate` recebe a conta atual (`null` se não existir) e
-     * devolve a conta nova; se `mutate` lançar uma exceção (ex.: saldo
-     * insuficiente), nada é escrito — o estado anterior fica intacto.
+     * Reads, transforms and writes as ONE atomic operation — not as
+     * `findById` followed by a separate `save`. This matters because
+     * `withdraw`/`deposit` do "read balance, decide, write balance", and
+     * reading-deciding-writing in two steps is exactly where two
+     * concurrent requests on the same account would lose an update (lost
+     * update) even with a thread-safe data structure underneath. `mutate`
+     * receives the current account (`null` if it doesn't exist) and
+     * returns the new account; if `mutate` throws (e.g. insufficient
+     * funds), nothing is written — the previous state stays intact.
      */
     fun update(id: AccountId, mutate: (Account?) -> Account): Account
 

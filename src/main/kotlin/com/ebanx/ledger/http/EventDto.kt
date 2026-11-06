@@ -2,7 +2,7 @@ package com.ebanx.ledger.http
 
 import kotlinx.serialization.Serializable
 
-/** Corpo recebido em POST /event, tal como o enunciado define. */
+/** Body received on POST /event, exactly as the assignment defines it. */
 @Serializable
 data class EventRequest(
     val type: String,
@@ -11,15 +11,15 @@ data class EventRequest(
     val amount: Int,
 )
 
-/** Representação de uma conta na resposta HTTP. */
+/** An account's representation in the HTTP response. */
 @Serializable
 data class AccountView(val id: String, val balance: Int)
 
 /**
- * Corpo devolvido por POST /event. Os campos nulos são omitidos na
- * serialização (configurado no plugin de ContentNegotiation) porque o
- * enunciado só inclui a chave "origin" ou "destination" quando ela faz
- * sentido pro tipo de evento.
+ * Body returned by POST /event. Null fields are omitted from
+ * serialization (configured in the ContentNegotiation plugin) because the
+ * assignment only includes the "origin" or "destination" key when it
+ * makes sense for the event type.
  */
 @Serializable
 data class EventResponse(val origin: AccountView? = null, val destination: AccountView? = null)

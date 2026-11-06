@@ -10,21 +10,21 @@ import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import kotlinx.serialization.json.Json
 
 /**
- * Ponto de entrada do processo. Eu só subo o servidor Ktor na porta configurada
- * aqui; nenhuma regra de negócio vive nesta classe.
+ * Process entry point. I only start the Ktor server on the configured port
+ * here; no business rule lives in this class.
  */
 fun main() {
     embeddedServer(Netty, port = 8080, module = Application::module).start(wait = true)
 }
 
 /**
- * Composição da aplicação: plugins de transporte (JSON) e as rotas de
- * negócio, que vivem em `http.businessRouting` — ela também instala o
- * `StatusPages` que mapeia exceção de domínio pra status HTTP.
+ * Application composition: transport plugins (JSON) and the business
+ * routes, which live in `http.businessRouting` — it also installs the
+ * `StatusPages` plugin that maps domain exceptions to HTTP status codes.
  *
- * `explicitNulls = false` faz o serializer omitir campos nulos, porque o
- * enunciado só inclui a chave "origin" ou "destination" quando ela se aplica
- * ao tipo de evento.
+ * `explicitNulls = false` makes the serializer omit null fields, because the
+ * assignment only includes the "origin" or "destination" key when it
+ * applies to the event type.
  */
 @OptIn(kotlinx.serialization.ExperimentalSerializationApi::class)
 fun Application.module() {

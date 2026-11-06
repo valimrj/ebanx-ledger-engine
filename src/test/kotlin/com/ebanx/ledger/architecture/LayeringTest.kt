@@ -6,24 +6,25 @@ import com.lemonappdev.konsist.api.verify.assertFalse
 import org.junit.jupiter.api.Test
 
 /**
- * Testes de arquitetura: eu garanto aqui que a arquitetura hexagonal não
- * degrada enquanto o código cresce.
+ * Architecture tests: I guarantee here that the hexagonal architecture
+ * doesn't degrade as the code grows.
  *
- * Simplifiquei a estrutura juntando a porta `AccountRepository` dentro do
- * pacote `infrastructure` (ela mora no mesmo arquivo da sua única
- * implementação, em vez de ter um pacote `ports` só pra ela) — uma pasta a
- * menos pra navegar. Isso tem um custo que eu assumo conscientemente: a
- * regra de camadas não pode mais dizer "application não importa nada de
- * infrastructure", porque agora `application` precisa importar a interface
- * `AccountRepository`, que mora lá. Em troca, eu aperto a regra pro que
- * importa de verdade: nenhuma classe de `domain`/`application` pode
- * depender de uma implementação CONCRETA (`InMemoryAccountRepository`) nem
- * de `http`/Ktor. A interface pode atravessar; a implementação, nunca.
+ * I simplified the structure by merging the `AccountRepository` port
+ * into the `infrastructure` package (it lives in the same file as its
+ * single implementation, instead of having a `ports` package just for
+ * it) — one less folder to navigate. That has a cost I take on
+ * consciously: the layering rule can no longer say "application doesn't
+ * import anything from infrastructure", because now `application` needs
+ * to import the `AccountRepository` interface, which lives there. In
+ * exchange, I tighten the rule to what actually matters: no class in
+ * `domain`/`application` may depend on a CONCRETE implementation
+ * (`InMemoryAccountRepository`) nor on `http`/Ktor. The interface may
+ * cross; the implementation, never.
  */
 class LayeringTest {
 
     @Test
-    fun `domain nao pode depender de http nem de uma implementacao concreta de repositorio`() {
+    fun `domain must not depend on http nor on a concrete repository implementation`() {
         Konsist
             .scopeFromProduction()
             .files
@@ -38,7 +39,7 @@ class LayeringTest {
     }
 
     @Test
-    fun `application nao pode depender de http nem de uma implementacao concreta de repositorio`() {
+    fun `application must not depend on http nor on a concrete repository implementation`() {
         Konsist
             .scopeFromProduction()
             .files

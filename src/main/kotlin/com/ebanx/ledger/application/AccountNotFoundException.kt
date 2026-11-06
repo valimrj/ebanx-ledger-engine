@@ -3,8 +3,8 @@ package com.ebanx.ledger.application
 import com.ebanx.ledger.domain.AccountId
 
 /**
- * Sinaliza que a conta pedida não existe. Fica em `application` porque é um
- * caso que os casos de uso precisam comunicar; a tradução dela pra 404 é
- * responsabilidade exclusiva do adapter HTTP.
+ * Signals that the requested account doesn't exist. It lives in
+ * `application` because it's a case the use cases need to communicate;
+ * translating it to a 404 is the HTTP adapter's sole responsibility.
  */
 class AccountNotFoundException(val accountId: AccountId) : RuntimeException("Account ${accountId.value} not found")

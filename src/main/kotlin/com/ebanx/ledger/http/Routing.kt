@@ -26,15 +26,15 @@ import io.ktor.server.routing.post
 import io.ktor.server.routing.routing
 
 /**
- * Composição das dependências e das rotas de negócio. Fica fora de
- * `Application.module()` de propósito, pra module() continuar sendo só
- * "instalar plugins de transporte" — este arquivo é "o que a API faz".
+ * Dependency wiring and the business routes. It's kept out of
+ * `Application.module()` on purpose, so module() stays "install transport
+ * plugins" only — this file is "what the API does".
  *
- * Cada handler só faz duas coisas — ler a requisição e delegar pro caso de
- * uso certo — exatamente pra manter a complexidade ciclomática de cada rota
- * em 1. A decisão de "qual caso de uso chamar" já foi tomada antes, no
- * EventDispatcher; o mapeamento de erro pra status code é centralizado aqui
- * no StatusPages, não repetido rota a rota.
+ * Each handler only does two things — read the request and delegate to
+ * the right use case — exactly to keep each route's cyclomatic complexity
+ * at 1. The decision of "which use case to call" was already made before,
+ * in EventDispatcher; error-to-status-code mapping is centralized here in
+ * StatusPages, not repeated route by route.
  */
 fun Application.businessRouting(repository: AccountRepository = InMemoryAccountRepository()) {
     val depositUseCase = DepositUseCase(repository)
@@ -48,14 +48,14 @@ fun Application.businessRouting(repository: AccountRepository = InMemoryAccountR
         exception<AccountNotFoundException> { call, _ ->
             call.respondText("0", ContentType.Text.Plain, HttpStatusCode.NotFound)
         }
-        // O enunciado não cobre esse caso nos exemplos, então a escolha de
-        // status (400, não 404 — a conta existe, só não tem saldo) é minha,
-        // não ditada pelo spec.
+        // The assignment doesn't cover this case in its examples, so the
+        // status choice (400, not 404 — the account exists, it just has no
+        // funds) is mine, not dictated by the spec.
         exception<InsufficientFundsException> { call, _ ->
             call.respondText("0", ContentType.Text.Plain, HttpStatusCode.BadRequest)
         }
-        // Mesmo raciocínio: valor zero/negativo também é entrada inválida,
-        // não um 404 nem um saldo insuficiente.
+        // Same reasoning: a zero/negative amount is also invalid input,
+        // not a 404 nor insufficient funds.
         exception<InvalidAmountException> { call, _ ->
             call.respondText("0", ContentType.Text.Plain, HttpStatusCode.BadRequest)
         }

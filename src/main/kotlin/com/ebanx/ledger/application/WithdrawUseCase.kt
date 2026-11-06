@@ -5,19 +5,19 @@ import com.ebanx.ledger.domain.AccountId
 import com.ebanx.ledger.infrastructure.AccountRepository
 
 /**
- * Único motivo de mudar: orquestrar o saque. A regra "não pode sacar mais
- * do que tem" eu não repito aqui: ela já vive em `Account.withdraw`, que
- * lança `InsufficientFundsException`.
+ * Single reason to change: orchestrating the withdraw. The rule "can't
+ * withdraw more than you have" isn't repeated here: it already lives in
+ * `Account.withdraw`, which throws `InsufficientFundsException`.
  *
- * Eu uso `repository.update` em vez de `findById` seguido de um `save`
- * separado por duas razões, as duas críticas sob concorrência: (1) duas
- * threads lendo o mesmo saldo antigo e escrevendo por cima uma da outra
- * perderiam um saque (lost update); (2) sem essa atomicidade, duas threads
- * poderiam cada uma ver saldo suficiente *na leitura* e as duas saques
- * passarem, deixando a conta negativa — exatamente o bug que
- * `InsufficientFundsException` existe pra evitar. `ConcurrentHashMap.compute`
- * serializa as duas chamadas pra essa mesma conta, então a segunda só
- * decide depois que a primeira já terminou de escrever.
+ * I use `repository.update` instead of `findById` followed by a separate
+ * `save` for two reasons, both critical under concurrency: (1) two threads
+ * reading the same stale balance and overwriting each other would lose a
+ * withdraw (lost update); (2) without this atomicity, two threads could
+ * each see sufficient funds *at read time* and both withdraws go through,
+ * leaving the account negative — exactly the bug `InsufficientFundsException`
+ * exists to prevent. `ConcurrentHashMap.compute` serializes the two calls
+ * for that same account, so the second one only decides after the first
+ * has already finished writing.
  */
 class WithdrawUseCase(private val repository: AccountRepository) {
 

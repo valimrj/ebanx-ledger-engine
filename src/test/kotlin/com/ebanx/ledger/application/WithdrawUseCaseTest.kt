@@ -14,14 +14,14 @@ class WithdrawUseCaseTest {
     private val withdrawUseCase = WithdrawUseCase(repository)
 
     @Test
-    fun `eu saco de uma conta inexistente e recebo AccountNotFoundException`() {
+    fun `I withdraw from a non-existing account and get AccountNotFoundException`() {
         assertFailsWith<AccountNotFoundException> {
             withdrawUseCase.execute(origin = AccountId("200"), amount = 10)
         }
     }
 
     @Test
-    fun `eu saco de uma conta existente e o saldo subtrai`() {
+    fun `I withdraw from an existing account and the balance subtracts`() {
         depositUseCase.execute(destination = AccountId("100"), amount = 20)
 
         val account = withdrawUseCase.execute(origin = AccountId("100"), amount = 5)
@@ -30,7 +30,7 @@ class WithdrawUseCaseTest {
     }
 
     @Test
-    fun `eu tento sacar mais do que o saldo e recebo InsufficientFundsException, sem alterar o saldo`() {
+    fun `I try to withdraw more than the balance and get InsufficientFundsException, without changing the balance`() {
         depositUseCase.execute(destination = AccountId("100"), amount = 10)
 
         assertFailsWith<InsufficientFundsException> {

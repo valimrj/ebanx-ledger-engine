@@ -11,14 +11,14 @@ class DepositUseCaseTest {
     private val depositUseCase = DepositUseCase(repository)
 
     @Test
-    fun `eu deposito numa conta nova e ela e criada com o saldo do deposito`() {
+    fun `I deposit into a new account and it gets created with the deposit's balance`() {
         val account = depositUseCase.execute(destination = AccountId("100"), amount = 10)
 
         assertEquals(10, account.balance)
     }
 
     @Test
-    fun `eu deposito numa conta existente e o saldo soma ao que ja tinha`() {
+    fun `I deposit into an existing account and the balance adds to what it already had`() {
         depositUseCase.execute(destination = AccountId("100"), amount = 10)
 
         val account = depositUseCase.execute(destination = AccountId("100"), amount = 10)

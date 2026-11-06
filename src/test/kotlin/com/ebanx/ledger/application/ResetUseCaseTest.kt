@@ -8,7 +8,7 @@ import kotlin.test.assertNull
 class ResetUseCaseTest {
 
     @Test
-    fun `eu dou reset e as contas somem do repositorio`() {
+    fun `I reset and the accounts disappear from the repository`() {
         val repository = InMemoryAccountRepository()
         DepositUseCase(repository).execute(AccountId("100"), amount = 10)
 

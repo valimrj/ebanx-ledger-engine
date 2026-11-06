@@ -13,28 +13,27 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 /**
- * História 11 do meu plano: reproduzo a sequência exata de requisições e
- * respostas que o enunciado da EBANX descreve, incluindo o corpo de cada
- * resposta, não só o status code.
+ * Story 11 of my plan: I reproduce the exact sequence of requests and
+ * responses the EBANX assignment describes, including each response's
+ * body, not just the status code.
  *
- * Eu escrevo isso como UM teste sequencial, não como `@TestFactory` com
- * `DynamicTest`: cada passo do enunciado depende do saldo que o passo
- * anterior deixou (ex.: "deposit into existing account" só faz sentido
- * depois de "create account with initial balance"), e todos os passos
- * precisam rodar contra o mesmo servidor de teste vivo, no mesmo client.
- * `DynamicTest` assume casos independentes entre si — forçar isso aqui ia
- * exigir recriar a aplicação a cada passo (perdendo o estado). Um teste
- * sequencial é a modelagem correta pra uma suíte de regressão ordenada
- * como esta.
+ * I write this as ONE sequential test, not as a `@TestFactory` with
+ * `DynamicTest`: each step of the assignment depends on the balance the
+ * previous step left behind (e.g. "deposit into existing account" only
+ * makes sense after "create account with initial balance"), and all the
+ * steps need to run against the same live test server, on the same
+ * client. `DynamicTest` assumes cases that are independent of each other
+ * — forcing that here would mean recreating the application at every step
+ * (losing the state). A sequential test is the right model for an
+ * ordered regression suite like this one.
  *
- * Os testes de dado variável que realmente se beneficiam de `DynamicTest`
- * eu escrevi em `EventDispatcherTest` (história 8), onde cada caso é
- * independente.
+ * The variable-data tests that actually benefit from `DynamicTest` are in
+ * `EventDispatcherTest` (story 8), where each case is independent.
  */
 class EventScenariosTest {
 
     @Test
-    fun `eu reproduzo a sequencia completa de cenarios do enunciado da EBANX`() = testApplication {
+    fun `I reproduce the EBANX assignment's full scenario sequence`() = testApplication {
         application { module() }
 
         // reset state before starting tests
@@ -95,14 +94,14 @@ class EventScenariosTest {
     }
 
     /**
-     * Esse cenário não está nos exemplos do enunciado, mas o checklist da
-     * EBANX deixa explícito que saque "respeitando saldo insuficiente" é um
-     * ponto conceitual a validar. Não é 404 (a conta "300" existe); eu
-     * escolhi 400 porque é o pedido que está malformado frente ao estado
-     * atual, não um recurso que não existe.
+     * This scenario isn't in the assignment's examples, but the EBANX
+     * checklist explicitly states that a withdraw "respecting insufficient
+     * funds" is a conceptual point to validate. It's not a 404 (account
+     * "300" exists); I chose 400 because it's the request that's malformed
+     * given the current state, not a resource that doesn't exist.
      */
     @Test
-    fun `eu tento sacar mais do que a conta tem e recebo 400`() = testApplication {
+    fun `I try to withdraw more than the account has and get 400`() = testApplication {
         application { module() }
 
         postEvent("""{"type":"deposit","destination":"400","amount":10}""")
@@ -117,14 +116,15 @@ class EventScenariosTest {
     }
 
     /**
-     * Checklist da EBANX (item 10, "bugs comuns"): "valores inválidos não
-     * tratados" / "estado inconsistente após operações". Um saque negativo
-     * passaria ileso pela checagem de saldo suficiente e se comportaria
-     * como depósito — eu provo aqui, na rota real, que isso não acontece: o
-     * pedido é rejeitado com 400 e o saldo não muda nem um pouco.
+     * EBANX checklist (item 10, "common bugs"): "invalid values not
+     * handled" / "inconsistent state after operations". A negative
+     * withdraw would pass unharmed through the sufficient-funds check and
+     * behave like a deposit — I prove here, on the real route, that this
+     * doesn't happen: the request is rejected with 400 and the balance
+     * doesn't move at all.
      */
     @Test
-    fun `eu tento sacar valor negativo e recebo 400 sem o saldo mudar`() = testApplication {
+    fun `I try to withdraw a negative amount and get 400 without the balance changing`() = testApplication {
         application { module() }
 
         postEvent("""{"type":"deposit","destination":"600","amount":20}""")
@@ -139,13 +139,14 @@ class EventScenariosTest {
     }
 
     /**
-     * Ponto conceitual do checklist da EBANX: "GET não deve ter efeito
-     * colateral". Eu chamo GET /balance várias vezes de propósito e
-     * confirmo que o saldo é o mesmo em todas — na rota real, não só no
-     * caso de uso isolado (esse eu já testei em GetBalanceUseCaseTest).
+     * EBANX checklist's conceptual point: "GET must not have a side
+     * effect". I call GET /balance several times on purpose and confirm
+     * the balance is the same every time — on the real route, not just on
+     * the isolated use case (that one I already tested in
+     * GetBalanceUseCaseTest).
      */
     @Test
-    fun `GET balance repetidas vezes nunca muda o saldo`() = testApplication {
+    fun `GET balance repeatedly never changes the balance`() = testApplication {
         application { module() }
 
         postEvent("""{"type":"deposit","destination":"500","amount":30}""")

@@ -1,22 +1,22 @@
 package com.ebanx.ledger.domain
 
 /**
- * Identificador de conta. Eu encapsulo a string crua num tipo próprio pra não
- * confundir "id de conta" com qualquer outra string pelo código.
+ * Account identifier. I wrap the raw string in its own type so that an
+ * "account id" never gets confused with any other string in the code.
  */
 data class AccountId(val value: String)
 
 /**
- * Conta é um objeto de domínio imutável: cada operação devolve uma nova
- * instância em vez de mutar o estado atual. Isso elimina uma classe inteira
- * de bugs de estado compartilhado e mantém os métodos pequenos e sem
- * ramificação extra — a única decisão que `withdraw` toma é a que protege o
- * invariante do domínio: saldo nunca fica negativo.
+ * Account is an immutable domain object: every operation returns a new
+ * instance instead of mutating the current state. That removes a whole
+ * class of shared-state bugs and keeps the methods small, with no extra
+ * branching — the only decision `withdraw` makes is the one that protects
+ * the domain invariant: balance never goes negative.
  *
- * Essa validação mora aqui, não no caso de uso, porque "saldo não pode ficar
- * negativo" é uma regra do que uma Account É, não uma regra de orquestração
- * — ela vale pra withdraw direto e pra transfer (que reusa withdraw), sem eu
- * precisar repetir o `if` em dois lugares.
+ * That validation lives here, not in the use case, because "balance can't
+ * go negative" is a rule about what an Account IS, not an orchestration
+ * rule — it applies to a direct withdraw and to transfer (which reuses
+ * withdraw), without me repeating the `if` in two places.
  */
 data class Account(
     val id: AccountId,
@@ -34,31 +34,33 @@ data class Account(
     }
 
     companion object {
-        /** Abre uma conta nova já com o primeiro depósito. */
+        /** Opens a new account already with its first deposit. */
         fun openWith(id: AccountId, initialDeposit: Int): Account {
             requirePositive(initialDeposit)
             return Account(id, initialDeposit)
         }
 
-        // Validação de valor fica aqui, não no caso de uso ou na rota: é uma
-        // regra sobre o que uma operação de Account significa (não existe
-        // depósito/saque de zero ou negativo), então vale pros três pontos
-        // de entrada (deposit, withdraw, openWith) sem eu repetir o `if`.
+        // Amount validation lives here, not in the use case or the route:
+        // it's a rule about what an Account operation means (there's no
+        // such thing as a zero or negative deposit/withdraw), so it applies
+        // to all three entry points (deposit, withdraw, openWith) without
+        // me repeating the `if`.
         private fun requirePositive(amount: Int) {
             if (amount <= 0) throw InvalidAmountException(amount)
         }
     }
 }
 
-/** Saque ou transferência pediram mais do que a conta tem disponível. */
+/** A withdraw or transfer asked for more than the account has available. */
 class InsufficientFundsException(val accountId: AccountId) :
     RuntimeException("Account ${accountId.value} has insufficient funds")
 
 /**
- * Valor de depósito/saque zero ou negativo. Sem isso, um saque negativo
- * passaria a checagem de saldo suficiente (`amount > balance` é falso pra
- * amount negativo) e se comportaria como um depósito sem limite — exatamente
- * o tipo de "valor inválido não tratado" que deixa o estado inconsistente.
+ * Zero or negative deposit/withdraw amount. Without this, a negative
+ * withdraw would pass the sufficient-funds check (`amount > balance` is
+ * false for a negative amount) and behave like an unlimited deposit —
+ * exactly the kind of "invalid value not handled" that leaves the state
+ * inconsistent.
  */
 class InvalidAmountException(val amount: Int) :
     RuntimeException("Amount must be positive, got $amount")

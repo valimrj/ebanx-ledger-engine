@@ -7,10 +7,10 @@ import com.ebanx.ledger.domain.Account
 import com.ebanx.ledger.domain.AccountId
 
 /**
- * Único motivo de mudar: traduzir um `EventRequest` pro caso de uso certo e
- * devolver a forma de resposta que o enunciado espera. Fica no pacote http
- * porque EventRequest/EventResponse são formatos de fio, não conceitos de
- * domínio.
+ * Single reason to change: translating an `EventRequest` into the right
+ * use case and returning the response shape the assignment expects. It
+ * lives in the http package because EventRequest/EventResponse are wire
+ * formats, not domain concepts.
  */
 class EventDispatcher(
     private val depositUseCase: DepositUseCase,
@@ -22,10 +22,11 @@ class EventDispatcher(
         "deposit" -> depositResponse(request)
         "withdraw" -> withdrawResponse(request)
         "transfer" -> transferResponse(request)
-        // O enunciado só define esses três tipos; não crio uma exceção de
-        // domínio pra um caso que ele não descreve — isso seria antecipar
-        // cenário fora da especificação. `IllegalArgumentException` já diz
-        // o que precisa dizer: a entrada está fora do que a API aceita.
+        // The assignment only defines these three types; I don't create a
+        // domain exception for a case it doesn't describe — that would be
+        // anticipating a scenario outside the spec. `IllegalArgumentException`
+        // already says what it needs to say: the input is outside what the
+        // API accepts.
         else -> throw IllegalArgumentException("Unknown event type: ${request.type}")
     }
 
@@ -48,8 +49,8 @@ class EventDispatcher(
         return EventResponse(origin = result.origin.toView(), destination = result.destination.toView())
     }
 
-    // Mesmo raciocínio: campo obrigatório ausente pro tipo de evento também
-    // não está nos exemplos do enunciado. IllegalArgumentException basta.
+    // Same reasoning: a required field missing for the event type is also
+    // outside the assignment's examples. IllegalArgumentException is enough.
     private fun requireField(value: String?, fieldName: String): String =
         value ?: throw IllegalArgumentException("Missing field: $fieldName")
 }

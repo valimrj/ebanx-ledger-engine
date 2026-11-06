@@ -5,13 +5,13 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
 /**
- * Eu testo a classe de domínio isolada, sem Ktor, sem repositório — só regra
- * de negócio pura.
+ * I test the domain class in isolation, no Ktor, no repository — just pure
+ * business rules.
  */
 class AccountTest {
 
     @Test
-    fun `eu deposito e o saldo soma`() {
+    fun `I deposit and the balance adds up`() {
         val account = Account(id = AccountId("100"), balance = 10)
 
         val result = account.deposit(10)
@@ -20,7 +20,7 @@ class AccountTest {
     }
 
     @Test
-    fun `eu deposito numa conta nova e o saldo fica igual ao valor depositado`() {
+    fun `I deposit into a new account and the balance equals the deposited amount`() {
         val account = Account.openWith(id = AccountId("100"), initialDeposit = 10)
 
         assertEquals(10, account.balance)
@@ -28,7 +28,7 @@ class AccountTest {
     }
 
     @Test
-    fun `eu saco e o saldo subtrai`() {
+    fun `I withdraw and the balance subtracts`() {
         val account = Account(id = AccountId("100"), balance = 20)
 
         val result = account.withdraw(5)
@@ -37,7 +37,7 @@ class AccountTest {
     }
 
     @Test
-    fun `deposit nao altera a conta original pois Account e imutavel`() {
+    fun `deposit does not change the original account because Account is immutable`() {
         val account = Account(id = AccountId("100"), balance = 10)
 
         account.deposit(10)
@@ -46,7 +46,7 @@ class AccountTest {
     }
 
     @Test
-    fun `eu saco exatamente o saldo disponivel e a conta fica com zero`() {
+    fun `I withdraw exactly the available balance and the account ends up at zero`() {
         val account = Account(id = AccountId("100"), balance = 15)
 
         val result = account.withdraw(15)
@@ -55,7 +55,7 @@ class AccountTest {
     }
 
     @Test
-    fun `eu tento sacar mais do que o saldo disponivel e recebo InsufficientFundsException`() {
+    fun `I try to withdraw more than the available balance and get InsufficientFundsException`() {
         val account = Account(id = AccountId("100"), balance = 10)
 
         val exception = assertFailsWith<InsufficientFundsException> {
@@ -66,7 +66,7 @@ class AccountTest {
     }
 
     @Test
-    fun `saque que falha por saldo insuficiente nao altera o saldo da conta original`() {
+    fun `a withdraw that fails on insufficient funds does not change the original balance`() {
         val account = Account(id = AccountId("100"), balance = 10)
 
         runCatching { account.withdraw(11) }
@@ -75,7 +75,7 @@ class AccountTest {
     }
 
     @Test
-    fun `eu tento depositar valor zero ou negativo e recebo InvalidAmountException`() {
+    fun `I try to deposit a zero or negative amount and get InvalidAmountException`() {
         val account = Account(id = AccountId("100"), balance = 10)
 
         assertFailsWith<InvalidAmountException> { account.deposit(0) }
@@ -83,7 +83,7 @@ class AccountTest {
     }
 
     @Test
-    fun `eu tento sacar valor zero ou negativo e recebo InvalidAmountException`() {
+    fun `I try to withdraw a zero or negative amount and get InvalidAmountException`() {
         val account = Account(id = AccountId("100"), balance = 10)
 
         assertFailsWith<InvalidAmountException> { account.withdraw(0) }
@@ -91,7 +91,7 @@ class AccountTest {
     }
 
     @Test
-    fun `saque com valor negativo nao pode se comportar como deposito`() {
+    fun `a negative withdraw amount cannot behave like a deposit`() {
         val account = Account(id = AccountId("100"), balance = 10)
 
         runCatching { account.withdraw(-5) }
@@ -100,7 +100,7 @@ class AccountTest {
     }
 
     @Test
-    fun `eu tento abrir conta com deposito inicial zero ou negativo e recebo InvalidAmountException`() {
+    fun `I try to open an account with a zero or negative initial deposit and get InvalidAmountException`() {
         assertFailsWith<InvalidAmountException> { Account.openWith(AccountId("100"), initialDeposit = 0) }
         assertFailsWith<InvalidAmountException> { Account.openWith(AccountId("100"), initialDeposit = -5) }
     }

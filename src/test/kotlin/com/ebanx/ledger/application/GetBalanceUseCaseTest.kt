@@ -12,25 +12,25 @@ class GetBalanceUseCaseTest {
     private val getBalanceUseCase = GetBalanceUseCase(repository)
 
     @Test
-    fun `eu busco o saldo de uma conta inexistente e recebo null`() {
+    fun `I look up the balance of a non-existing account and get null`() {
         assertNull(getBalanceUseCase.execute(AccountId("1234")))
     }
 
     @Test
-    fun `eu busco o saldo de uma conta existente`() {
+    fun `I look up the balance of an existing account`() {
         DepositUseCase(repository).execute(AccountId("100"), amount = 20)
 
         assertEquals(20, getBalanceUseCase.execute(AccountId("100"))?.balance)
     }
 
     /**
-     * Ponto conceitual que eu preciso provar, não só afirmar: GET não pode
-     * ter efeito colateral. Eu chamo a consulta várias vezes e confirmo que
-     * o saldo não muda nenhuma vez — se `execute` algum dia chamasse
-     * `repository.save` por engano, esse teste quebraria.
+     * A conceptual point I need to prove, not just claim: GET cannot have
+     * a side effect. I call the query several times and confirm the
+     * balance never changes — if `execute` ever called `repository.save`
+     * by mistake, this test would break.
      */
     @Test
-    fun `eu consulto o saldo varias vezes e o saldo nunca muda so por consultar`() {
+    fun `I query the balance several times and it never changes just by querying`() {
         DepositUseCase(repository).execute(AccountId("100"), amount = 20)
 
         repeat(5) {

@@ -1,80 +1,80 @@
 # EBANX Ledger Engine
 
-API de saldo/eventos (deposit, withdraw, transfer) pro take-home assignment
-da EBANX. Sem persistência — tudo em memória, como o enunciado pede.
+A balance/events API (deposit, withdraw, transfer) for the EBANX take-home
+assignment. No persistence — everything in memory, as the assignment asks.
 
-## Como eu rodo localmente
+## How I run it locally
 
 ```bash
 ./gradlew run
 ```
 
-A API sobe em `http://localhost:8080`.
+The API comes up on `http://localhost:8080`.
 
-## Como eu rodo os testes
+## How I run the tests
 
 ```bash
 ./gradlew test
 ```
 
-Isso roda testes unitários (domínio e casos de uso), testes de arquitetura
-(Konsist, garantindo que a arquitetura hexagonal não degrade) e testes de
-integração (as rotas HTTP, incluindo a sequência exata de cenários do
-enunciado).
+This runs unit tests (domain and use cases), architecture tests (Konsist,
+guaranteeing the hexagonal architecture doesn't degrade) and integration
+tests (the HTTP routes, including the exact scenario sequence from the
+assignment).
 
-## Minhas decisões de arquitetura
+## My architecture decisions
 
-Eu escrevi o raciocínio completo em [`PLAN.md`](./PLAN.md): por que Kotlin +
-Ktor, por que sem Kafka/DynamoDB, como TDD guiou cada história, como os
-testes de arquitetura protegem a fronteira hexagonal, e por que a sequência
-de cenários do enunciado é um teste sequencial e não um `@TestFactory`.
+I wrote the full reasoning in [`PLAN.md`](./PLAN.md): why Kotlin + Ktor,
+why no Kafka/DynamoDB, how TDD guided each story, how the architecture
+tests protect the hexagonal boundary, and why the assignment's scenario
+sequence is a sequential test and not a `@TestFactory`.
 
-Resumindo a estrutura:
+Summarizing the structure:
 
 ```
 src/main/kotlin/com/ebanx/ledger/
-├── domain/         # Account — regra de negocio pura, sem Ktor
-├── application/     # um caso de uso por operacao (SRP)
-├── infrastructure/  # AccountRepository (a porta) + InMemoryAccountRepository (a unica impl)
-└── http/            # DTOs, EventDispatcher, rotas Ktor
+├── domain/          # Account — pure business rule, no Ktor
+├── application/     # one use case per operation (SRP)
+├── infrastructure/  # AccountRepository (the port) + InMemoryAccountRepository (the only impl)
+└── http/            # DTOs, EventDispatcher, Ktor routes
 ```
 
-Simplifiquei juntando a porta `AccountRepository` no mesmo pacote da sua
-única implementação, em vez de um pacote `ports` separado só pra uma
-interface — uma pasta a menos. `domain`/`application` podem importar a
-interface, mas nunca a implementação concreta (`InMemoryAccountRepository`)
-nem nada de `http`/Ktor — essa regra mais fina é o que o `LayeringTest`
-verifica automaticamente.
+I simplified things by putting the `AccountRepository` port in the same
+package as its single implementation, instead of a separate `ports`
+package just for one interface — one less folder. `domain`/`application`
+may import the interface, but never the concrete implementation
+(`InMemoryAccountRepository`) nor anything from `http`/Ktor — this finer
+rule is what `LayeringTest` checks automatically.
 
 ## Endpoints
 
-| Método | Rota | Descrição |
+| Method | Route | Description |
 |---|---|---|
-| `POST` | `/reset` | Limpa todo o estado |
-| `GET` | `/balance?account_id=:id` | Saldo da conta (texto plano); `404 0` se não existir |
+| `POST` | `/reset` | Clears all state |
+| `GET` | `/balance?account_id=:id` | Account balance (plain text); `404 0` if it doesn't exist |
 | `POST` | `/event` | `{"type": "deposit"\|"withdraw"\|"transfer", ...}` |
 
-Regras de negócio que valem pra `withdraw` e `transfer` (a segunda reusa a
-primeira): a conta de origem precisa existir (`404` se não existir) e
-precisa ter saldo suficiente (`400` se não tiver — essa invariante vive em
-`Account.withdraw`, não é só validação de borda na rota). Valor de
-depósito/saque zero ou negativo também é rejeitado com `400` — sem essa
-checagem, um saque negativo passaria pela validação de saldo e se
-comportaria como um depósito sem limite.
+Business rules that apply to `withdraw` and `transfer` (the second reuses
+the first): the origin account must exist (`404` if it doesn't) and must
+have sufficient funds (`400` if it doesn't — this invariant lives in
+`Account.withdraw`, it's not just edge validation in the route). A zero or
+negative deposit/withdraw amount is also rejected with `400` — without
+that check, a negative withdraw would pass the balance validation and
+behave like an unlimited deposit.
 
-## Consistência sob concorrência
+## Consistency under concurrency
 
-`AccountRepository.update(id, mutate)` lê, transforma e grava como uma
-única operação atômica (via `ConcurrentHashMap.compute`) — não como um
-`findById` seguido de um `save` separado, que deixaria uma janela pra duas
-requisições concorrentes na mesma conta perderem uma atualização ou as
-duas passarem um saque que deveria falhar. Isso tem um teste real provando
-(200 threads depositando 1 ao mesmo tempo, saldo final tem que ser 200,
-determinístico). Detalhes e o trade-off que assumo em transferência (cada
-perna atômica, mas as duas pernas não são uma transação atômica única)
-estão no [`PLAN.md`](./PLAN.md).
+`AccountRepository.update(id, mutate)` reads, transforms and writes as
+one single atomic operation (via `ConcurrentHashMap.compute`) — not as a
+`findById` followed by a separate `save`, which would leave a window for
+two concurrent requests on the same account to lose an update, or for
+both to pass a withdraw that should have failed. This has a real test
+proving it (200 threads depositing 1 at the same time, final balance has
+to be 200, deterministically). Details and the trade-off I accept on
+transfers (each leg atomic, but the two legs aren't a single atomic
+transaction) are in [`PLAN.md`](./PLAN.md).
 
 ## CI
 
-Todo push/PR roda `./gradlew test` no GitHub Actions
+Every push/PR runs `./gradlew test` on GitHub Actions
 (`.github/workflows/ci.yml`).

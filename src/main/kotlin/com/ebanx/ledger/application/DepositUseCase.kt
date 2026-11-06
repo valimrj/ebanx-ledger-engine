@@ -5,14 +5,15 @@ import com.ebanx.ledger.domain.AccountId
 import com.ebanx.ledger.infrastructure.AccountRepository
 
 /**
- * Único motivo de mudar: a regra de depósito. Deposit nunca falha no spec —
- * por isso não há `when`/`if` de validação aqui, só o caminho feliz.
+ * Single reason to change: the deposit rule. Deposit never fails in the
+ * spec — that's why there's no validation `when`/`if` here, just the
+ * happy path.
  *
- * Eu uso `repository.update` (ler + transformar + gravar numa operação
- * atômica) em vez de `findById` seguido de um `save` separado, porque dois
- * depósitos concorrentes na mesma conta nova, feitos em dois passos,
- * poderiam ambos ler "não existe" e ambos tentar criar a conta — um dos
- * dois depósitos se perderia.
+ * I use `repository.update` (read + transform + write as one atomic
+ * operation) instead of `findById` followed by a separate `save`, because
+ * two concurrent deposits on the same new account, done in two steps,
+ * could both read "doesn't exist" and both try to create the account —
+ * one of the two deposits would get lost.
  */
 class DepositUseCase(private val repository: AccountRepository) {
 

@@ -7,17 +7,16 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 /**
- * Teste de fio-terra (história 1): eu confirmo que o harness de teste de
- * integração do Ktor sobe a aplicação de ponta a ponta, antes de eu escrever
- * qualquer rota de negócio.
+ * Smoke test (story 1): I confirm that Ktor's integration test harness
+ * boots the application end to end, before I write any business route.
  */
 class ApplicationTest {
 
     @Test
-    fun `eu subo a aplicacao e recebo 404 para uma rota que ainda nao existe`() = testApplication {
+    fun `I boot the application and get 404 for a route that doesn't exist yet`() = testApplication {
         application { module() }
 
-        val response = client.get("/rota-que-nao-existe")
+        val response = client.get("/route-that-does-not-exist")
 
         assertEquals(HttpStatusCode.NotFound, response.status)
     }

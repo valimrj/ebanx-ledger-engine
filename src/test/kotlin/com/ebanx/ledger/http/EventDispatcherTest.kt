@@ -14,10 +14,10 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
 /**
- * EventDispatcher é o único lugar que decide, a partir do `type` recebido no
- * JSON, qual caso de uso chamar. Eu isolo essa decisão aqui, fora da rota
- * Ktor, pra manter o handler HTTP com complexidade ciclomática baixa — ele só
- * faz parsing e delega.
+ * EventDispatcher is the one place that decides, from the `type` received
+ * in the JSON, which use case to call. I isolate that decision here,
+ * outside the Ktor route, to keep the HTTP handler's cyclomatic complexity
+ * low — it only parses and delegates.
  */
 class EventDispatcherTest {
 
@@ -29,14 +29,14 @@ class EventDispatcherTest {
     )
 
     @Test
-    fun `evento deposit retorna somente destination`() {
+    fun `a deposit event returns only destination`() {
         val response = dispatcher.dispatch(EventRequest(type = "deposit", destination = "100", amount = 10))
 
         assertEquals(EventResponse(destination = AccountView("100", 10)), response)
     }
 
     @Test
-    fun `evento withdraw retorna somente origin`() {
+    fun `a withdraw event returns only origin`() {
         dispatcher.dispatch(EventRequest(type = "deposit", destination = "100", amount = 20))
 
         val response = dispatcher.dispatch(EventRequest(type = "withdraw", origin = "100", amount = 5))
@@ -45,14 +45,14 @@ class EventDispatcherTest {
     }
 
     @Test
-    fun `evento withdraw de conta inexistente propaga AccountNotFoundException`() {
+    fun `a withdraw event on a non-existing account propagates AccountNotFoundException`() {
         assertFailsWith<AccountNotFoundException> {
             dispatcher.dispatch(EventRequest(type = "withdraw", origin = "200", amount = 10))
         }
     }
 
     @Test
-    fun `evento transfer retorna origin e destination`() {
+    fun `a transfer event returns origin and destination`() {
         dispatcher.dispatch(EventRequest(type = "deposit", destination = "100", amount = 15))
 
         val response = dispatcher.dispatch(
@@ -66,17 +66,17 @@ class EventDispatcherTest {
     }
 
     /**
-     * Estes casos são independentes entre si — cada um abre seu próprio
-     * repositório em memória do zero — então `DynamicTest` se encaixa bem
-     * aqui: a tabela abaixo documenta por si só quais valores de depósito eu
-     * cubro, e um valor novo é só uma linha nova.
+     * These cases are independent of each other — each one opens its own
+     * in-memory repository from scratch — so `DynamicTest` fits well here:
+     * the table below documents by itself which deposit amounts I cover,
+     * and a new amount is just a new row.
      */
     @TestFactory
-    fun `deposito numa conta nova sempre abre com o saldo igual ao valor depositado`(): List<DynamicTest> {
+    fun `a deposit into a new account always opens it with a balance equal to the deposited amount`(): List<DynamicTest> {
         val amounts = listOf(1, 10, 100, 999)
 
         return amounts.map { amount ->
-            DynamicTest.dynamicTest("depósito de $amount abre a conta com saldo $amount") {
+            DynamicTest.dynamicTest("depositing $amount opens the account with balance $amount") {
                 val isolatedDispatcher = EventDispatcher(
                     depositUseCase = DepositUseCase(InMemoryAccountRepository()),
                     withdrawUseCase = WithdrawUseCase(InMemoryAccountRepository()),

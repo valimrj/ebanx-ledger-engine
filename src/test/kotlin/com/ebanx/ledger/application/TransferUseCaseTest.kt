@@ -18,14 +18,14 @@ class TransferUseCaseTest {
     )
 
     @Test
-    fun `eu transfiro de uma origem inexistente e recebo AccountNotFoundException`() {
+    fun `I transfer from a non-existing origin and get AccountNotFoundException`() {
         assertFailsWith<AccountNotFoundException> {
             transferUseCase.execute(origin = AccountId("200"), destination = AccountId("300"), amount = 15)
         }
     }
 
     @Test
-    fun `eu transfiro de uma origem existente para um destino novo`() {
+    fun `I transfer from an existing origin to a brand new destination`() {
         depositUseCase.execute(destination = AccountId("100"), amount = 15)
 
         val result = transferUseCase.execute(origin = AccountId("100"), destination = AccountId("300"), amount = 15)
@@ -35,7 +35,7 @@ class TransferUseCaseTest {
     }
 
     @Test
-    fun `eu transfiro de uma origem existente para um destino que ja existe`() {
+    fun `I transfer from an existing origin to a destination that already exists`() {
         depositUseCase.execute(destination = AccountId("100"), amount = 15)
         depositUseCase.execute(destination = AccountId("300"), amount = 5)
 
@@ -46,7 +46,7 @@ class TransferUseCaseTest {
     }
 
     @Test
-    fun `eu transfiro mais do que a origem tem e o destino nao e tocado`() {
+    fun `I transfer more than the origin has and the destination is left untouched`() {
         depositUseCase.execute(destination = AccountId("100"), amount = 10)
 
         assertFailsWith<InsufficientFundsException> {

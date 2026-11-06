@@ -3,14 +3,14 @@ package com.ebanx.ledger.application
 import com.ebanx.ledger.domain.Account
 import com.ebanx.ledger.domain.AccountId
 
-/** Resultado de uma transferência: os dois saldos finais, origem e destino. */
+/** Result of a transfer: the two final balances, origin and destination. */
 data class TransferResult(val origin: Account, val destination: Account)
 
 /**
- * Único motivo de mudar: a regra de transferência. Eu reuso Withdraw e
- * Deposit por composição em vez de duplicar a lógica de cada um — se a
- * conta de origem não existir, o 404 já vem de dentro de WithdrawUseCase,
- * eu só deixo a exceção propagar.
+ * Single reason to change: the transfer rule. I reuse Withdraw and Deposit
+ * through composition instead of duplicating each one's logic — if the
+ * origin account doesn't exist, the 404 already comes from inside
+ * WithdrawUseCase, I just let the exception propagate.
  */
 class TransferUseCase(
     private val withdrawUseCase: WithdrawUseCase,

@@ -9,14 +9,14 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
 /**
- * Eu testo a porta `AccountRepository` através da implementação em memória —
- * é a única implementação que existe agora, então não há motivo pra duplicar
- * os testes num fake separado.
+ * I test the `AccountRepository` port through the in-memory implementation —
+ * it's the only implementation that exists right now, so there's no reason
+ * to duplicate the tests on a separate fake.
  */
 class InMemoryAccountRepositoryTest {
 
     @Test
-    fun `eu crio uma conta com update e recupero ela pelo id`() {
+    fun `I create an account with update and get it back by id`() {
         val repository: AccountRepository = InMemoryAccountRepository()
 
         repository.update(AccountId("100")) { Account(AccountId("100"), balance = 10) }
@@ -25,14 +25,14 @@ class InMemoryAccountRepositoryTest {
     }
 
     @Test
-    fun `eu busco uma conta que nao existe e recebo null`() {
+    fun `I look up an account that doesn't exist and get null`() {
         val repository: AccountRepository = InMemoryAccountRepository()
 
-        assertNull(repository.findById(AccountId("nao-existe")))
+        assertNull(repository.findById(AccountId("does-not-exist")))
     }
 
     @Test
-    fun `eu limpo o repositorio e as contas somem`() {
+    fun `I clear the repository and the accounts disappear`() {
         val repository: AccountRepository = InMemoryAccountRepository()
         repository.update(AccountId("100")) { Account(AccountId("100"), balance = 10) }
 
@@ -42,25 +42,25 @@ class InMemoryAccountRepositoryTest {
     }
 
     /**
-     * Esta é a prova de que a leitura-decisão-escrita é atômica, não só
-     * "protegida pelo ConcurrentHashMap". Se `update` fizesse um
-     * findById + save como duas operações separadas, 200 threads somando 1
-     * concorrentemente perderiam incrementos (lost update) e o resultado
-     * final seria menor que 200 — de forma não-determinística, o que
-     * tornaria esse teste flaky exatamente pelo motivo certo.
+     * This is the proof that read-decide-write is atomic, not just
+     * "protected by ConcurrentHashMap". If `update` did a findById + save
+     * as two separate operations, 200 threads concurrently adding 1 would
+     * lose increments (lost update) and the final result would be less
+     * than 200 — non-deterministically, which would make this test flaky
+     * for exactly the right reason.
      */
     @Test
-    fun `200 updates concorrentes na mesma conta nao perdem nenhum incremento`() {
+    fun `200 concurrent updates on the same account lose no increment`() {
         val repository: AccountRepository = InMemoryAccountRepository()
         repository.update(AccountId("100")) { Account(AccountId("100"), balance = 0) }
 
         val threadCount = 200
-        // Pool com uma thread por tarefa de propósito: todas precisam poder
-        // esperar na barreira ao mesmo tempo. Um pool menor que threadCount
-        // trava (as tarefas enfileiradas nunca chegam a decrementar
-        // readyToStart, que o main thread espera chegar a zero antes de
-        // soltar startSignal) — eu vi esse deadlock na primeira versão
-        // deste teste.
+        // Pool with one thread per task on purpose: all of them need to be
+        // able to wait at the barrier at the same time. A pool smaller
+        // than threadCount deadlocks (the queued tasks never get to
+        // decrement readyToStart, which the main thread waits to reach
+        // zero before releasing startSignal) — I saw this deadlock in the
+        // first version of this test.
         val executor = Executors.newFixedThreadPool(threadCount)
         val readyToStart = CountDownLatch(threadCount)
         val startSignal = CountDownLatch(1)
@@ -76,7 +76,7 @@ class InMemoryAccountRepositoryTest {
         }
 
         readyToStart.await()
-        startSignal.countDown() // solta todas as threads de uma vez, maximizando a corrida
+        startSignal.countDown() // releases all threads at once, maximizing the race
         done.await()
         executor.shutdown()
 
@@ -84,17 +84,17 @@ class InMemoryAccountRepositoryTest {
     }
 
     /**
-     * Prova o rollback automático: se a transformação lança uma exceção
-     * (ex.: `InsufficientFundsException`), o estado anterior não pode ter
-     * sido parcialmente sobrescrito.
+     * Proves the automatic rollback: if the transformation throws (e.g.
+     * `InsufficientFundsException`), the previous state must not have
+     * been partially overwritten.
      */
     @Test
-    fun `update que lanca excecao nao altera o estado anterior`() {
+    fun `an update that throws does not change the previous state`() {
         val repository: AccountRepository = InMemoryAccountRepository()
         repository.update(AccountId("100")) { Account(AccountId("100"), balance = 10) }
 
         runCatching {
-            repository.update(AccountId("100")) { throw RuntimeException("falha de propósito") }
+            repository.update(AccountId("100")) { throw RuntimeException("failure on purpose") }
         }
 
         assertEquals(10, repository.findById(AccountId("100"))?.balance)
