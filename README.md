@@ -67,6 +67,32 @@ internet. Uso o [ngrok](https://ngrok.com/) pra isso. Passo a passo:
 Pra rodar os passos manualmente, sem o atalho: `./gradlew run` (ou
 `make run`), depois `ngrok http 8080` em outro terminal.
 
+Saída esperada de `make expose`:
+
+```
+Subindo a aplicação (log em /tmp/...)...
+Aguardando a aplicação responder em http://localhost:8080...
+Aplicação no ar. Abrindo túnel ngrok...
+Aguardando o ngrok abrir o túnel...
+Túnel aberto. Rodando o roteiro de cenários contra https://xxxx.ngrok-free.app...
+
+  OK   reset limpa o estado
+  OK   saldo de conta inexistente
+  OK   deposit cria a conta
+  OK   saldo depois do deposit
+  OK   withdraw com saldo suficiente
+  OK   withdraw maior que o saldo
+  OK   transfer entre contas
+  OK   amount zero ou negativo é rejeitado
+
+Todos os cenários passaram pela internet real, não só localmente.
+
+URL pública (cole em https://ipkiss.ebanx.ninja/ e clique em "Run tests!"):
+  https://xxxx.ngrok-free.app
+
+Ctrl+C encerra a aplicação e o túnel.
+```
+
 ## CI
 
 Configurei pra rodar `./gradlew test` no GitHub Actions a cada push/PR
