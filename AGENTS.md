@@ -43,18 +43,15 @@ explica como rodar e as decisões técnicas.
 
 - **Não antecipe cenário fora do enunciado.** Se o enunciado ou o
   checklist de avaliação não cobre um caso, não implemente validação ou
-  comportamento especulativo pra ele. (Já foi revertido uma vez neste
-  projeto: `MissingEventFieldException`/`UnknownEventTypeException`
-  foram removidas por serem especulativas e sem teste.)
-- **Não adicione dependência sem necessidade comprovada.** Kafka e
-  DynamoDB foram descartados conscientemente — o enunciado diz que
-  durabilidade não é requisito. Qualquer plugin/biblioteca nova precisa
-  justificar seu peso (o `io.ktor.plugin` já foi removido por trazer
-  tarefas de build — fat jar, imagem Docker — nunca usadas).
+  comportamento especulativo pra ele.
+- **Não adicione dependência sem necessidade comprovada.** Mensageria
+  assíncrona e banco externo só entram se o enunciado passar a exigir
+  durabilidade ou desacoplamento de serviço. Qualquer plugin/biblioteca
+  nova precisa justificar seu peso.
 - **Não separe `findById` + `save` pra estado mutável.** Toda escrita de
   conta deve passar por `AccountRepository.update(id, mutate)`, que é
   atômica. Separar leitura e escrita em dois passos reintroduz lost
-  update — já aconteceu uma vez nesse projeto e foi corrigido.
+  update.
 - **Não deixe GET alterar estado.** Nenhuma rota de consulta pode, em
   nenhuma circunstância, escrever no repositório. Isso tem teste
   dedicado (`GET balance repeatedly never changes the balance`).
