@@ -75,13 +75,6 @@ class EventScenariosTest {
         }
     }
 
-    /**
-     * This scenario isn't in the assignment's examples, but the EBANX
-     * checklist explicitly states that a withdraw "respecting insufficient
-     * funds" is a conceptual point to validate. It's not a 404 (account
-     * "300" exists); I chose 400 because it's the request that's malformed
-     * given the current state, not a resource that doesn't exist.
-     */
     @Test
     fun `I try to withdraw more than the account has and get 400`() = testApplication {
         application { module() }
@@ -97,14 +90,6 @@ class EventScenariosTest {
         assertEquals("10", balanceAfter.bodyAsText())
     }
 
-    /**
-     * EBANX checklist (item 10, "common bugs"): "invalid values not
-     * handled" / "inconsistent state after operations". A negative
-     * withdraw would pass unharmed through the sufficient-funds check and
-     * behave like a deposit - I prove here, on the real route, that this
-     * doesn't happen: the request is rejected with 400 and the balance
-     * doesn't move at all.
-     */
     @Test
     fun `I try to withdraw a negative amount and get 400 without the balance changing`() = testApplication {
         application { module() }
@@ -120,13 +105,6 @@ class EventScenariosTest {
         assertEquals("20", balanceAfter.bodyAsText())
     }
 
-    /**
-     * EBANX checklist's conceptual point: "GET must not have a side
-     * effect". I call GET /balance several times on purpose and confirm
-     * the balance is the same every time - on the real route, not just on
-     * the isolated use case (that one I already tested in
-     * GetBalanceUseCaseTest).
-     */
     @Test
     fun `GET balance repeatedly never changes the balance`() = testApplication {
         application { module() }

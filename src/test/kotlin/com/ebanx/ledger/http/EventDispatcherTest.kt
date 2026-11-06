@@ -59,12 +59,6 @@ class EventDispatcherTest {
         )
     }
 
-    /**
-     * These cases are independent of each other - each one opens its own
-     * in-memory repository from scratch - so `DynamicTest` fits well here:
-     * the table below documents by itself which deposit amounts I cover,
-     * and a new amount is just a new row.
-     */
     @TestFactory
     fun `a deposit into a new account always opens it with a balance equal to the deposited amount`(): List<DynamicTest> {
         val amounts = listOf(1, 10, 100, 999)
