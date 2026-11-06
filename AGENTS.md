@@ -6,8 +6,10 @@ antes: diga contra qual regra está indo e por quê.
 
 **Contexto do projeto**: take-home "Ledger Engine" da EBANX — API de
 saldo e eventos (deposit/withdraw/transfer), em memória, simples. Specs
-em [`docs/spec.md`](./docs/spec.md); decisões técnicas no
-[`README.md`](./README.md).
+em [`docs/spec.md`](./docs/spec.md); o porquê da arquitetura escolhida
+e as convenções específicas dela (camadas, onde cada coisa mora) estão
+no [`README.md`](./README.md) — este arquivo não repete isso, só traz
+regras de comportamento válidas pra qualquer arquitetura.
 
 ## Princípios
 
@@ -17,9 +19,6 @@ em [`docs/spec.md`](./docs/spec.md); decisões técnicas no
   green → refactor).
 - **SRP.** Um caso de uso resolve uma operação só. Sem classe "Service"
   genérica.
-- **Hexagonal.** `domain`/`application` nunca importam `io.ktor` nem
-  implementação concreta de repositório — garantido por
-  `LayeringTest`, não por convenção.
 - **Complexidade ciclomática baixa.** Evite abstração só pra reduzir
   linhas; prefira funções pequenas e poucas decisões aninhadas.
 - **Sem abstração prematura.** Não crie interface, classe base ou
@@ -52,8 +51,8 @@ em [`docs/spec.md`](./docs/spec.md); decisões técnicas no
   atômica.
 - Deixar uma rota `GET` escrever no repositório, em qualquer
   circunstância.
-- Colocar regra de negócio no handler HTTP. Handler só lê a requisição e
-  delega; validação de saldo/valor vive no domínio.
+- Misturar regra de negócio com código de transporte (HTTP,
+  serialização). São responsabilidades diferentes, não misture.
 - Comitar sem `./gradlew test` verde.
 - Usar `--amend`, `push --force` ou pular hooks sem a pessoa pedir.
 - Tomar decisão de arquitetura (stack, framework, deploy) sem
@@ -64,10 +63,6 @@ em [`docs/spec.md`](./docs/spec.md); decisões técnicas no
 - Commits: Conventional Commits (`feat`, `fix`, `refactor`, `test`,
   `docs`, `chore`) + descrição curta em primeira pessoa. Uma história =
   um commit pequeno e testável.
-- Exceção de regra de negócio (`InsufficientFundsException`,
-  `InvalidAmountException`) vive em `domain`; exceção de
-  orquestração/lookup (`AccountNotFoundException`) vive em
-  `application`.
 - CI roda `./gradlew test` em todo push/PR; nada é "pronto" sem CI
   verde.
 
