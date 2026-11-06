@@ -1,109 +1,67 @@
 # AGENTS.md — EBANX Ledger Engine
 
-Este arquivo é a constituição do projeto: regras que valem pra qualquer
-agente (humano ou IA) que trabalhe neste repositório. Se um pedido da
-pessoa conflitar com algo aqui, o pedido explícito dela vence — mas
-avise antes de agir, dizendo contra qual regra está indo e por quê.
+Regras pra qualquer agente (humano ou IA) que trabalhe neste repo. Um
+pedido explícito da pessoa vence sobre qualquer regra aqui, mas avise
+antes: diga contra qual regra está indo e por quê.
 
-## 1. Missão do projeto
+**Contexto do projeto**: take-home "Ledger Engine" da EBANX — API de
+saldo e eventos (deposit/withdraw/transfer), em memória, simples. Specs
+em [`docs/spec.md`](./docs/spec.md); decisões técnicas no
+[`README.md`](./README.md).
 
-Resolver o take-home assignment "Ledger Engine" da EBANX: uma API de
-saldo e eventos bancários (deposit, withdraw, transfer), em memória, com
-lógica de negócio real, testada e simples. O documento de referência pro
-que "pronto" significa é [`docs/spec.md`](./docs/spec.md); o README
-explica como rodar e as decisões técnicas.
+## Princípios
 
-## 2. Princípios inegociáveis
+- **Simplicidade antes de sofisticação.** Entre duas soluções que
+  atendem ao requisito, use a mais simples.
+- **TDD.** Nenhuma implementação sem teste que falhou antes (red →
+  green → refactor).
+- **SRP.** Um caso de uso resolve uma operação só. Sem classe "Service"
+  genérica.
+- **Hexagonal.** `domain`/`application` nunca importam `io.ktor` nem
+  implementação concreta de repositório — garantido por
+  `LayeringTest`, não por convenção.
+- **Idioma**: documentação em português; código, comentários, KDoc e
+  nomes de teste em inglês.
+- **Voz**: README e `docs/spec.md` em primeira pessoa (descrevem
+  trabalho feito); commits também. Este arquivo é regra, não relato —
+  fala em modo diretivo.
 
-1. **Simplicidade antes de sofisticação.** O enunciado da EBANX avalia
-   explicitamente a capacidade de resolver bem sem complicar. Entre duas
-   soluções que atendem ao requisito, escolha a mais simples, sempre.
-2. **TDD.** Não escreva nenhuma linha de implementação sem um teste que
-   falhou antes dela (red → green → refactor). Pular isso é violar a
-   constituição, não só um estilo.
-3. **Arquitetura hexagonal, mas sem rigidez de manual.** `domain` e
-   `application` nunca importam `io.ktor` nem a implementação concreta
-   de repositório — isso é garantido por teste (`LayeringTest`), não só
-   por convenção. Fora essa regra, não crie camada nova sem necessidade
-   comprovada.
-4. **SRP de verdade.** Um caso de uso resolve uma operação. Nenhuma
-   classe "Service" genérica fazendo várias coisas.
-5. **Primeira pessoa na documentação de autoria e nos commits.** README,
-   `docs/spec.md` e mensagens de commit devem ser escritos na primeira
-   pessoa de quem fez o trabalho — porque descrevem trabalho feito. Este
-   arquivo é a exceção: é instrução pra quem vem depois, então fala em
-   modo diretivo ("faça", "não faça"), não em primeira pessoa.
-6. **Idioma**: documentação (`README.md`, `docs/`, `AGENTS.md`) em
-   português. Código, comentários no código, KDoc e nomes de teste em
-   inglês — mantenha o código acessível a qualquer revisor, independente
-   do idioma, e a documentação de decisão na língua mais natural pra
-   explicar o raciocínio.
+## Nunca faça
 
-## 3. Guardrails — o que NUNCA fazer aqui
+- Implementar validação ou comportamento pra cenário fora do enunciado
+  ou do checklist de avaliação.
+- Adicionar dependência (banco, mensageria, framework) sem necessidade
+  comprovada pelo enunciado.
+- Separar leitura e escrita de conta em dois passos (`findById` +
+  `save`). Toda escrita passa por `AccountRepository.update(id, mutate)`,
+  atômica.
+- Deixar uma rota `GET` escrever no repositório, em qualquer
+  circunstância.
+- Colocar regra de negócio no handler HTTP. Handler só lê a requisição e
+  delega; validação de saldo/valor vive no domínio.
+- Comitar sem `./gradlew test` verde.
+- Usar `--amend`, `push --force` ou pular hooks sem a pessoa pedir.
+- Tomar decisão de arquitetura (stack, framework, deploy) sem
+  confirmação explícita da pessoa, mesmo com recomendação forte.
 
-- **Não antecipe cenário fora do enunciado.** Se o enunciado ou o
-  checklist de avaliação não cobre um caso, não implemente validação ou
-  comportamento especulativo pra ele.
-- **Não adicione dependência sem necessidade comprovada.** Mensageria
-  assíncrona e banco externo só entram se o enunciado passar a exigir
-  durabilidade ou desacoplamento de serviço. Qualquer plugin/biblioteca
-  nova precisa justificar seu peso.
-- **Não separe `findById` + `save` pra estado mutável.** Toda escrita de
-  conta deve passar por `AccountRepository.update(id, mutate)`, que é
-  atômica. Separar leitura e escrita em dois passos reintroduz lost
-  update.
-- **Não deixe GET alterar estado.** Nenhuma rota de consulta pode, em
-  nenhuma circunstância, escrever no repositório. Isso tem teste
-  dedicado (`GET balance repeatedly never changes the balance`).
-- **Não misture lógica de negócio com a camada HTTP.** Um handler Ktor
-  só lê a requisição e delega pro caso de uso certo. Validação de regra
-  de negócio (saldo insuficiente, valor inválido) vive no domínio, não
-  na rota.
-- **Não comite sem rodar `./gradlew test` antes e ver `BUILD
-  SUCCESSFUL`.** Nenhum commit principal pode deixar o projeto num
-  estado que não compila ou com teste quebrado.
-- **Não use `--amend`, `push --force`, nem pule hooks** a menos que a
-  pessoa peça explicitamente.
-- **Não trate "a IA sugeriu" como autorização.** Toda decisão de
-  arquitetura relevante (stack, trocar Ktor por outro framework,
-  Kafka/DynamoDB, deploy) precisa de confirmação explícita da pessoa
-  antes de ser implementada, mesmo com uma recomendação forte.
+## Convenções
 
-## 4. Padrão de mercado a seguir
+- Commits: Conventional Commits (`feat`, `fix`, `refactor`, `test`,
+  `docs`, `chore`) + descrição curta em primeira pessoa. Uma história =
+  um commit pequeno e testável.
+- Exceção de regra de negócio (`InsufficientFundsException`,
+  `InvalidAmountException`) vive em `domain`; exceção de
+  orquestração/lookup (`AccountNotFoundException`) vive em
+  `application`.
+- CI roda `./gradlew test` em todo push/PR; nada é "pronto" sem CI
+  verde.
 
-- **Commits no estilo Conventional Commits**: `feat`, `fix`, `refactor`,
-  `test`, `docs`, `chore`, seguidos de uma descrição curta — na primeira
-  pessoa de quem fez a mudança, como já é a convenção deste repo.
-- **Uma história = um commit pequeno e testável**, nunca um commit
-  gigante misturando várias mudanças não relacionadas.
-- **Testes de arquitetura (Konsist) como guarda-trilho automatizado**,
-  não só como documentação de intenção — é o padrão de mercado pra
-  projetos que levam arquitetura hexagonal/limpa a sério.
-- **CI obrigatório**: todo push/PR deve rodar a suíte completa de testes
-  (`.github/workflows/ci.yml`). Nenhuma mudança é considerada "pronta"
-  sem o CI verde.
-- **Nomenclatura de exceção de domínio**: exceções que representam
-  regra de negócio (`InsufficientFundsException`, `InvalidAmountException`)
-  vivem em `domain`; exceções de orquestração/lookup
-  (`AccountNotFoundException`) vivem em `application`. Mantenha essa
-  distinção em qualquer exceção nova.
+## Antes de qualquer mudança
 
-## 5. O que fazer antes de qualquer mudança nova
-
-1. Leia [`docs/spec.md`](./docs/spec.md) pra ver se o comportamento já
-   está especificado. Se não estiver, pergunte antes de implementar —
-   não assuma.
-2. Escreva o teste que falha primeiro.
+1. Confira `docs/spec.md` — se o comportamento não está especificado,
+   pergunte antes de implementar.
+2. Escreva o teste que falha.
 3. Implemente o mínimo pra passar.
 4. Rode `./gradlew test` completo.
-5. Atualize `docs/spec.md` (se mudou requisito) ou `README.md` (se
-   mudou decisão técnica) no mesmo commit da mudança de código, nunca
-   depois.
-6. Comite pequeno, estilo Conventional Commits, na primeira pessoa de
-   quem fez a mudança.
-
-## 6. Quando algo aqui conflitar com um pedido direto
-
-Siga o pedido direto da pessoa, mas avise antes: "isso vai contra a
-regra X do AGENTS.md porque Y — quer que eu siga mesmo assim?". Nunca
-quebre um guardrail silenciosamente.
+5. Atualize `docs/spec.md` ou `README.md` no mesmo commit da mudança.
+6. Comite pequeno.
