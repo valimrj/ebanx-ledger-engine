@@ -117,6 +117,28 @@ class EventScenariosTest {
     }
 
     /**
+     * Checklist da EBANX (item 10, "bugs comuns"): "valores inválidos não
+     * tratados" / "estado inconsistente após operações". Um saque negativo
+     * passaria ileso pela checagem de saldo suficiente e se comportaria
+     * como depósito — eu provo aqui, na rota real, que isso não acontece: o
+     * pedido é rejeitado com 400 e o saldo não muda nem um pouco.
+     */
+    @Test
+    fun `eu tento sacar valor negativo e recebo 400 sem o saldo mudar`() = testApplication {
+        application { module() }
+
+        postEvent("""{"type":"deposit","destination":"600","amount":20}""")
+
+        val response = postEvent("""{"type":"withdraw","origin":"600","amount":-5}""")
+
+        assertEquals(HttpStatusCode.BadRequest, response.status)
+        assertEquals("0", response.bodyAsText())
+
+        val balanceAfter = client.get("/balance?account_id=600")
+        assertEquals("20", balanceAfter.bodyAsText())
+    }
+
+    /**
      * Ponto conceitual do checklist da EBANX: "GET não deve ter efeito
      * colateral". Eu chamo GET /balance várias vezes de propósito e
      * confirmo que o saldo é o mesmo em todas — na rota real, não só no

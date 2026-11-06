@@ -87,6 +87,18 @@ lock global cobrindo as duas contas, o que serializaria toda transferência
 do sistema — trade-off que eu não faria sem o enunciado pedir durabilidade
 ou isolamento transacional explícito.
 
+## Valor inválido (zero ou negativo) não é tratado como se fosse válido
+Revisando o checklist da EBANX item 10 ("bugs comuns": valores inválidos não
+tratados, estado inconsistente após operações), percebi que `Account.withdraw`
+só checava `amount > balance` — um saque com `amount` negativo passa essa
+checagem sem problema (`-5 > 10` é falso) e o `balance - amount` resultante
+*soma* ao saldo, ou seja, um saque negativo se comportava como um depósito
+sem limite. Corrigi adicionando `requirePositive` nos três pontos de entrada
+de valor (`deposit`, `withdraw`, `openWith`), lançando `InvalidAmountException`
+pra zero ou negativo, mapeada pra `400` no `StatusPages` — mesmo raciocínio
+de `InsufficientFundsException`, só que pra entrada malformada em vez de
+estado insuficiente.
+
 ## Histórias (cada uma = 1 commit pequeno, testável, em primeira pessoa)
 
 1. **chore**: subo o esqueleto Kotlin/Ktor + arquitetura hexagonal + CI + teste

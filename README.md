@@ -57,7 +57,10 @@ verifica automaticamente.
 Regras de negócio que valem pra `withdraw` e `transfer` (a segunda reusa a
 primeira): a conta de origem precisa existir (`404` se não existir) e
 precisa ter saldo suficiente (`400` se não tiver — essa invariante vive em
-`Account.withdraw`, não é só validação de borda na rota).
+`Account.withdraw`, não é só validação de borda na rota). Valor de
+depósito/saque zero ou negativo também é rejeitado com `400` — sem essa
+checagem, um saque negativo passaria pela validação de saldo e se
+comportaria como um depósito sem limite.
 
 ## Consistência sob concorrência
 

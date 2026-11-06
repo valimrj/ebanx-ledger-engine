@@ -73,4 +73,35 @@ class AccountTest {
 
         assertEquals(10, account.balance)
     }
+
+    @Test
+    fun `eu tento depositar valor zero ou negativo e recebo InvalidAmountException`() {
+        val account = Account(id = AccountId("100"), balance = 10)
+
+        assertFailsWith<InvalidAmountException> { account.deposit(0) }
+        assertFailsWith<InvalidAmountException> { account.deposit(-5) }
+    }
+
+    @Test
+    fun `eu tento sacar valor zero ou negativo e recebo InvalidAmountException`() {
+        val account = Account(id = AccountId("100"), balance = 10)
+
+        assertFailsWith<InvalidAmountException> { account.withdraw(0) }
+        assertFailsWith<InvalidAmountException> { account.withdraw(-5) }
+    }
+
+    @Test
+    fun `saque com valor negativo nao pode se comportar como deposito`() {
+        val account = Account(id = AccountId("100"), balance = 10)
+
+        runCatching { account.withdraw(-5) }
+
+        assertEquals(10, account.balance)
+    }
+
+    @Test
+    fun `eu tento abrir conta com deposito inicial zero ou negativo e recebo InvalidAmountException`() {
+        assertFailsWith<InvalidAmountException> { Account.openWith(AccountId("100"), initialDeposit = 0) }
+        assertFailsWith<InvalidAmountException> { Account.openWith(AccountId("100"), initialDeposit = -5) }
+    }
 }

@@ -8,6 +8,7 @@ import com.ebanx.ledger.application.TransferUseCase
 import com.ebanx.ledger.application.WithdrawUseCase
 import com.ebanx.ledger.domain.AccountId
 import com.ebanx.ledger.domain.InsufficientFundsException
+import com.ebanx.ledger.domain.InvalidAmountException
 import com.ebanx.ledger.infrastructure.InMemoryAccountRepository
 import com.ebanx.ledger.infrastructure.AccountRepository
 import io.ktor.http.ContentType
@@ -51,6 +52,11 @@ fun Application.businessRouting(repository: AccountRepository = InMemoryAccountR
         // status (400, não 404 — a conta existe, só não tem saldo) é minha,
         // não ditada pelo spec.
         exception<InsufficientFundsException> { call, _ ->
+            call.respondText("0", ContentType.Text.Plain, HttpStatusCode.BadRequest)
+        }
+        // Mesmo raciocínio: valor zero/negativo também é entrada inválida,
+        // não um 404 nem um saldo insuficiente.
+        exception<InvalidAmountException> { call, _ ->
             call.respondText("0", ContentType.Text.Plain, HttpStatusCode.BadRequest)
         }
     }
