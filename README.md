@@ -4,6 +4,7 @@ Minha solução pro take-home assignment da EBANX: uma API de saldo/eventos
 (deposit, withdraw, transfer). Fiz sem persistência - tudo em memória,
 como o enunciado pede.
 
+
 ## Como eu rodo localmente
 
 ```bash
